@@ -3,7 +3,7 @@ Competition entry for didi-udacity 2017 challenge for autonomous driving
 <br><br>
 
 ![](docs/plan.png) 
-
+![](docs/net.png) 
 - There is no formal setting of team and division of task for now. We have study the problem first for one week. 
 - Basically, target for week mar-13:
 	- download kitti dataset and make code for read data
@@ -11,3 +11,7 @@ Competition entry for didi-udacity 2017 challenge for autonomous driving
 	- fit train data and make demo video (on train set)
 	
 	[delivery] : initial code + demo video
+
+
+This is expected results (image taken from from [http://3dimage.ee.tsinghua.edu.cn/cxz](http://3dimage.ee.tsinghua.edu.cn/cxz))
+![](docs/video.png) 
