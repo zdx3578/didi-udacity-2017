@@ -1,5 +1,79 @@
-from utility.common import *
 import pykitti
+from  pykitti.tracklet import parseXML, TRUNC_IN_IMAGE, TRUNC_TRUNCATED
+
+from net.common import *
+from net.utility.draw import *
+
+#
+# COLOR = {
+#    'Car': (0,0,1.), 'Van': (1.,0,1.), 'Truck': (1.,0,1.),
+#    'Pedestrian': (1.,1.,0), 'Person (sitting)': (1.,0.5,0),
+#    'Cyclist': (0,0,1.),
+#    'Tram': (0,1.,0),
+#    'Misc': (0.5,0.5,0.5)
+# }
+COLOR = {
+   'Car': (1.,1.,1.), 'Van': (1.,1.,1.), 'Truck': (1.,1.,1.),
+   'Pedestrian': (1.,1.,1.), 'Person (sitting)': (1.,1.,1.),
+   'Cyclist': (1.,1.,1.),
+   'Tram': (1.,1.,1.),
+   'Misc': (0.5,0.5,0.5)
+}
+
+
+
+def read_boxes(tracklet_file, num_frames):
+
+    objects = []  #grouped by frames
+    for n in range(num_frames): objects.append([])
+
+    # read tracklets from file
+    tracklets = parseXML(tracklet_file)
+    num = len(tracklets)
+
+    for n in range(num):
+        tracklet = tracklets[n]
+
+        # this part is inspired by kitti object development kit matlab code: computeBox3D
+        h,w,l = tracklet.size
+        trackletBox = np.array([ # in velodyne coordinates around zero point and without orientation yet\
+            [-l/2, -l/2,  l/2, l/2, -l/2, -l/2,  l/2, l/2], \
+            [ w/2, -w/2, -w/2, w/2,  w/2, -w/2, -w/2, w/2], \
+            [ 0.0,  0.0,  0.0, 0.0,    h,     h,   h,   h]])
+
+        # loop over all data in tracklet
+        t  = tracklet.firstFrame
+        for translation, rotation, state, occlusion, truncation, amtOcclusion, amtBorders, absoluteFrameNumber in tracklet:
+
+            # determine if object is in the image; otherwise continue
+            if truncation not in (TRUNC_IN_IMAGE, TRUNC_TRUNCATED):
+               continue
+
+            # re-create 3D bounding box in velodyne coordinate system
+            yaw = rotation[2]   # other rotations are 0 in all xml files I checked
+            assert np.abs(rotation[:2]).sum() == 0, 'object rotations other than yaw given!'
+            rotMat = np.array([\
+              [np.cos(yaw), -np.sin(yaw), 0.0], \
+              [np.sin(yaw),  np.cos(yaw), 0.0], \
+              [        0.0,          0.0, 1.0]])
+            cornerPosInVelo = np.dot(rotMat, trackletBox) + np.tile(translation, (8,1)).T
+
+            # calc yaw as seen from the camera (i.e. 0 degree = facing away from cam), as opposed to
+            #   car-centered yaw (i.e. 0 degree = same orientation as car).
+            #   makes quite a difference for objects in periphery!
+            # Result is in [0, 2pi]
+            x, y, z = translation
+            yawVisual = ( yaw - np.arctan2(y, x) ) % (2*math.pi)
+
+            o = type('', (), {})()
+            o.box = cornerPosInVelo.transpose()
+            o.type = tracklet.objectType
+            o.tracklet_id = n
+            objects[t].append(o)
+            t = t+1
+
+    return objects
+## --------------------------------------------------------------------------------------------------------
 
 
 def point3d_to_top_image(lidar):
@@ -21,12 +95,8 @@ def project_proposal(proposal):
     return top_proposal, front_propsal, rbg_proposal
 
 
-
-
-# main --------------------------------------------------------------------------
-if __name__ == '__main__':
-    print( '%s: calling main function ... ' % os.path.basename(__file__))
-
+# run functions --------------------------------------------------------------------------
+def run_load_dummy():
 
     basedir = '/root/share/project/didi/data/kitti/dummy'
     date  = '2011_09_26'
@@ -80,3 +150,271 @@ if __name__ == '__main__':
     ax2.set_title('Third Velodyne scan (subsampled)')
 
     plt.show()
+
+def lidar_to_top_image_coords(x,y,z=None):
+    u=int((x-TOP_X_MIN)//TOP_X_DIVISION)
+    v=int((y-TOP_Y_MIN)//TOP_Y_DIVISION)
+
+    return (u,v)
+
+
+
+
+
+
+
+
+# main #################################################################33
+if __name__ == '__main__':
+    print( '%s: calling main function ... ' % os.path.basename(__file__))
+
+    basedir = '/root/share/project/didi/data/kitti/dummy'
+    date  = '2011_09_26'
+    drive = '0005'
+
+    # The range argument is optional - default is None, which loads the whole dataset
+    dataset = pykitti.raw(basedir, date, drive) #, range(0, 50, 5))
+
+    # Load some data
+    dataset.load_calib()        # Calibration data are accessible as named tuples
+    dataset.load_timestamps()   # Timestamps are parsed into datetime objects
+    dataset.load_oxts()         # OXTS packets are loaded as named tuples
+    #dataset.load_gray()         # Left/right images are accessible as named tuples
+    #dataset.load_rgb()          # Left/right images are accessible as named tuples
+    dataset.load_velo()         # Each scan is a Nx4 array of [x,y,z,reflectance]
+
+    tracklet_file = '/root/share/project/didi/data/kitti/dummy/2011_09_26/tracklet_labels.xml'
+
+    num_frames=len(dataset.velo)  #154
+    objects = read_boxes(tracklet_file, num_frames)
+
+    #-------------------------------------------------------------------
+
+    X0, Xn = 0, int((TOP_X_MAX-TOP_X_MIN)//TOP_X_DIVISION)+1
+    Y0, Yn = 0, int((TOP_Y_MAX-TOP_Y_MIN)//TOP_Y_DIVISION)+1
+    Z0, Zn = 0, int((TOP_Z_MAX-TOP_Z_MIN)//TOP_Z_DIVISION)+1
+    height  = Yn - Y0
+    width   = Xn - X0
+    channel = Zn - Z0  + 2
+
+
+    # raw data
+    lidar = dataset.velo[0]
+    pxs=lidar[:,0]
+    pys=lidar[:,1]
+    pzs=lidar[:,2]
+    prs=lidar[:,3]
+
+    objs = objects[0]
+
+    pose0 = dataset.calib.T_velo_imu
+    pose  = dataset.oxts[0].T_w_imu
+
+    #pose = np.matmul(pose,np.linalg.inv(pose0))
+    #pose = np.matmul(np.linalg.inv(pose),pose0)
+    #pose = np.matmul(pose0,np.linalg.inv(pose))
+
+
+    ## show lidar 3d points and marking ###############################
+    if 0:
+        mlab.figure(figure=None, bgcolor=(0,0,0), fgcolor=None, engine=None, size=(500, 500))
+
+        mlt = mlab.points3d(pxs, pys, pzs, prs,
+             mode='point',  # 'point'  'sphere'
+             colormap='gnuplot',  #'bone',  #'spectral',  #'copper',
+             scale_factor=1)
+
+        #draw grid
+        if 0:
+            mlab.points3d(0, 0, 0, color=(1,1,1), mode='sphere', scale_factor=0.2)
+
+            for y in np.arange(-50,50,1):
+                x1,y1,z1 = -50, y, 0
+                x2,y2,z2 =  50, y, 0
+                mlab.plot3d([x1, x2], [y1, y2], [z1,z2], color=(0.5,0.5,0.5), tube_radius=None, line_width=1)
+
+            for x in np.arange(-50,50,1):
+                x1,y1,z1 = x,-50, 0
+                x2,y2,z2 = x, 50, 0
+                mlab.plot3d([x1, x2], [y1, y2], [z1,z2], color=(0.5,0.5,0.5), tube_radius=None, line_width=1)
+
+        #draw axis
+        if 1:
+            mlab.points3d(0, 0, 0, color=(1,1,1), mode='sphere', scale_factor=0.2)
+
+            axes=np.array([
+                [2.,0.,0.,0.],
+                [0.,2.,0.,0.],
+                [0.,0.,2.,0.],
+            ],dtype=np.float64)
+            fov=np.array([
+                [ 20.,20., 0.,0.],
+                [20.,-20.,0.,0.],
+            ],dtype=np.float64)
+
+            #poseT=pose.transpose()   ???
+            #axes = np.matmul(axes,poseT)
+            #fov  = np.matmul(fov,poseT)
+
+            mlab.plot3d([0, axes[0,0]], [0, axes[0,1]], [0, axes[0,2]], color=(1,0,0), tube_radius=None)
+            mlab.plot3d([0, axes[1,0]], [0, axes[1,1]], [0, axes[1,2]], color=(0,1,0), tube_radius=None)
+            mlab.plot3d([0, axes[2,0]], [0, axes[2,1]], [0, axes[2,2]], color=(0,0,1), tube_radius=None)
+            mlab.plot3d([0, fov[0,0]], [0, fov[0,1]], [0, fov[0,2]], color=(1,1,1), tube_radius=None, line_width=1)
+            mlab.plot3d([0, fov[1,0]], [0, fov[1,1]], [0, fov[1,2]], color=(1,1,1), tube_radius=None, line_width=1)
+
+        #draw top_image feature area
+        if 1:
+            x1 = TOP_X_MIN
+            x2 = TOP_X_MAX
+            y1 = TOP_Y_MIN
+            y2 = TOP_Y_MAX
+            mlab.plot3d([x1, x1], [y1, y2], [0,0], color=(0.5,0.5,0.5), tube_radius=None, line_width=1)
+            mlab.plot3d([x2, x2], [y1, y2], [0,0], color=(0.5,0.5,0.5), tube_radius=None, line_width=1)
+            mlab.plot3d([x1, x2], [y1, y1], [0,0], color=(0.5,0.5,0.5), tube_radius=None, line_width=1)
+            mlab.plot3d([x1, x2], [y2, y2], [0,0], color=(0.5,0.5,0.5), tube_radius=None, line_width=1)
+
+
+
+        #draw objects
+        num_objs = len(objs)
+        for n in range(num_objs):
+            obj= objs[n]
+            b = obj.box
+            color=COLOR[objs[n].type]
+
+            mlab.text3d(b[0,0], b[0,1], b[0,2], '%d'%n, scale=(1, 1, 1))
+            for k in range(0,4):
+
+                #http://docs.enthought.com/mayavi/mayavi/auto/mlab_helper_functions.html
+                i,j=k,(k+1)%4
+                mlab.plot3d([b[i,0], b[j,0]], [b[i,1], b[j,1]], [b[i,2], b[j,2]], color=color, tube_radius=None, line_width=2) #representation='wireframe') #tube_radius=0.05, tube_sides=3)
+
+                i,j=k+4,(k+1)%4 + 4
+                mlab.plot3d([b[i,0], b[j,0]], [b[i,1], b[j,1]], [b[i,2], b[j,2]], color=color, tube_radius=None, line_width=2)
+
+                i,j=k,k+4
+                mlab.plot3d([b[i,0], b[j,0]], [b[i,1], b[j,1]], [b[i,2], b[j,2]], color=color, tube_radius=None, line_width=2)
+
+        mlab.orientation_axes()
+        mlab.show()
+
+    ## make one top_image ###############################
+
+    qxs=((pxs-TOP_X_MIN)//TOP_X_DIVISION).astype(np.int32)
+    qys=((pys-TOP_Y_MIN)//TOP_Y_DIVISION).astype(np.int32)
+    qzs=((pzs-TOP_Z_MIN)//TOP_Z_DIVISION).astype(np.int32)
+
+    print('height,width,channel=%d,%d,%d'%(height,width,channel))
+    top_image   = np.zeros(shape=(height,width,channel), dtype=np.float32)
+
+
+    #make ground truth top view boxes
+    num_gt_boxes = len(objs)
+    gt_boxes=np.zeros((num_gt_boxes,5),dtype=np.int32)
+    for n in range(num_gt_boxes):
+        obj= objs[n]
+        b = obj.box
+        label=1 #<todo>
+
+        x0 = b[0,0]
+        y0 = b[0,1]
+        x1 = b[1,0]
+        y1 = b[1,1]
+        x2 = b[2,0]
+        y2 = b[2,1]
+        x3 = b[3,0]
+        y3 = b[3,1]
+        u0,v0=lidar_to_top_image_coords(x0,y0)
+        u1,v1=lidar_to_top_image_coords(x1,y1)
+        u2,v2=lidar_to_top_image_coords(x2,y2)
+        u3,v3=lidar_to_top_image_coords(x3,y3)
+
+        umin=min(u0,u1,u2,u3)
+        umax=max(u0,u1,u2,u3)
+        vmin=min(v0,v1,v2,v3)
+        vmax=max(v0,v1,v2,v3)
+        gt_boxes[n]=np.array([umin,vmin,umax,vmax,label])
+        pass
+
+    ## show 2d image and marking ###############################
+    #draw boxes
+    img = np.zeros((height,width,3),dtype=np.float32)
+    num = len(lidar)
+
+    for n in range(num):
+        x,y = qxs[n],qys[n]
+        if x>=0 and x <width and y>0 and y<height:
+            img[y,x,:] += 1
+    max_value=np.max(np.log(img+0.001))
+    img = img/max_value *255
+    img=img.astype(dtype=np.int32)
+    #imshow('img',img)
+
+
+    for n in range(num_gt_boxes):
+       x1,y1,x2,y2,l = gt_boxes[n]
+       cv2.rectangle(img,(x1,y1), (x2,y2), (0,255,255), 1)
+
+    imshow('img',img)
+    np.save('/root/share/project/didi/data/kitti/dummy/one_frame/gt_boxes.npy',gt_boxes)
+    cv2.imwrite('/root/share/project/didi/data/kitti/dummy/one_frame/top_image_0.png',img)
+    img = cv2.flip(img,0)
+    cv2.imwrite('/root/share/project/didi/data/kitti/dummy/one_frame/top_image_0.flip.png',img)
+    #imshow('img',img)
+    cv2.waitKey(1)
+
+
+
+    ## start to make top_image here !!!  ###############################
+    for z in range(Z0,Zn):
+        iz = np.where (qzs==z)
+        for y in range(Y0,Yn):
+            iy  = np.where (qys==y)
+            iyz = np.intersect1d(iy, iz)
+
+            for x in range(X0,Xn):
+                #print('', end='\r',flush=True)
+                #print(z,y,z,flush=True)
+
+                ix = np.where (qxs==x)
+                idx = np.intersect1d(ix,iyz)
+
+                if len(idx)>0:
+
+                    #height per slice
+                    max_height = max(0,np.max(pzs[idx])-TOP_Z_MIN)
+                    top_image[y-Y0,x-X0,z-Z0]=max_height
+
+                    #intensity
+                    max_intensity = np.max(prs[idx])
+                    top_image[y-Y0,x-X0,Zn]=max_intensity
+
+                    #density
+                    count = len(idx)
+                    top_image[y-Y0,x-X0,Zn+1]+=count
+
+                pass
+            pass
+        pass
+    top_image[:,:,Zn+1] = np.log(top_image[:,:,Zn+1]+1)/math.log(64)
+
+
+    #save
+    np.save('/root/share/project/didi/data/kitti/dummy/one_frame/top_image.npy',top_image)
+    np.save('/root/share/project/didi/data/kitti/dummy/one_frame/lidar.npy',lidar)
+
+
+    fig, axs = plt.subplots(1,channel)
+    for c in range(channel):
+        d = top_image[:,:,c]
+
+        axs[c].cla()
+        axs[c].imshow(d, cmap='gray')
+        axs[c].set_aspect('equal')
+        #axs[c].set_ylim(axs[c].get_ylim()[::-1])
+        if c!=0: axs[c].axis('off')
+
+    plt.waitforbuttonpress(1)
+    plt.show()
+
+

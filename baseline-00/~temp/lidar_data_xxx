@@ -1,0 +1,240 @@
+https://github.com/duanemalcolm/morphic/blob/master/morphic/viewer.py
+http://nullege.com/codes/search/mayavi.mlab.plot3d
+
+    basedir = '/root/share/project/didi/data/kitti/dummy'
+    date  = '2011_09_26'
+    drive = '0005'
+
+    # The range argument is optional - default is None, which loads the whole dataset
+    dataset = pykitti.raw(basedir, date, drive) #, range(0, 50, 5))
+
+    # Load some data
+    dataset.load_calib()        # Calibration data are accessible as named tuples
+    dataset.load_timestamps()   # Timestamps are parsed into datetime objects
+    dataset.load_oxts()         # OXTS packets are loaded as named tuples
+    #dataset.load_gray()         # Left/right images are accessible as named tuples
+    #dataset.load_rgb()          # Left/right images are accessible as named tuples
+    dataset.load_velo()         # Each scan is a Nx4 array of [x,y,z,reflectance]
+
+    tracklet_file = '/root/share/project/didi/data/kitti/dummy/2011_09_26/tracklet_labels.xml'
+
+    num_frames=len(dataset.velo)  #154
+    objects = read_boxes(tracklet_file, num_frames)
+
+
+
+    #--------------------------------------------------------------------------------------------
+    mlab.figure(figure=None, bgcolor=(0,0,0), fgcolor=None, engine=None, size=(500, 500))
+
+    lidar = dataset.velo[0]
+    pxs=lidar[:,0]
+    pys=lidar[:,1]
+    pzs=lidar[:,2]
+    prs=lidar[:,3]
+
+    mlt = mlab.points3d(pxs, pys, pzs, prs,
+                 mode='point',  # 'point'  'sphere'
+                 colormap='copper',  #'bone',  #'spectral',  #'copper',
+                 scale_factor=1)
+
+
+    objs = objects[0]
+    num_objs = len(objs)
+    for n in range(num_objs):
+        b = objs[n].box
+        xmax = np.max(b[:,0])
+        xmin = np.max(b[:,0])
+        ymax = np.max(b[:,1])
+        ymin = np.max(b[:,1])
+
+        color=COLOR[objs[n].type]
+        for k in range(0,4):
+            i,j=k,(k+1)%4
+            mlab.plot3d([b[i,0], b[j,0]], [b[i,1], b[j,1]], [b[i,2], b[j,2]], color=color, tube_radius=0.05)
+
+            i,j=k+4,(k+1)%4 + 4
+            mlab.plot3d([b[i,0], b[j,0]], [b[i,1], b[j,1]], [b[i,2], b[j,2]], color=color, tube_radius=0.05)
+
+            i,j=k,k+4
+            mlab.plot3d([b[i,0], b[j,0]], [b[i,1], b[j,1]], [b[i,2], b[j,2]], color=color, tube_radius=0.05)
+    mlab.show()
+
+
+    np.save('/root/share/project/didi/data/kitti/dummy/2011_09_26/training_data/lidar_one_frame.npy', dataset.velo[0])
+    #pickle.dump(,open('/root/share/project/didi/data/kitti/dummy/2011_09_26/training_data/object_one_frame.p','wb'))
+    exit(0)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    mlab.show()
+    exit(0)
+    #--------------------------------------------------------------------------------
+    # draw
+
+
+
+    #GridSize = [10,10]
+    #gx, gy  = [np.linspace(-40,40, G) for G in GridSize]
+    #gx, gy = np.meshgrid(gx,gy)
+    #gz = gx *0
+    #mlab.mesh(gx, gy, gz,  representation='wireframe', color=(1., 1., 1.))
+    # gp = mayavi.modules.grid_plane()
+    # mayavi.add_module(gp)
+    # gp.grid_plane.axis = 'z'
+
+
+
+    #https://docs.enthought.com/mayavi/mayavi/mlab_animating.html
+
+    @mlab.animate(delay=1000, ui=True)
+    def animate():
+        fig = mlab.gcf()
+
+        #---------------------------------------------------------
+        for t in range(num_frames):
+            print (t)
+
+            pose = dataset.oxts[t].T_w_imu
+            #draw axis
+            # axes=np.array(
+            #     [0,0,0,1],
+            #     [3,0,0,1],
+            #     [0,3,0,1],
+            #     [0,0,3,1],
+            # )
+            # np.matmul(pose,axes,axes)
+            # mlab.plot3d([axes[0,0], axes[1,0]], [axes[0,0], axes[1,0]], [axes[0,0], axes[1,0]], color=(0,0,1), tube_radius=0.05)
+
+
+            lidar = dataset.velo[t]
+            pxs=lidar[:,0]
+            pys=lidar[:,1]
+            pzs=lidar[:,2]
+            prs=lidar[:,3]
+            #mlt.mlab_source.reset(x=pxs, y=pys, z=pzs, scalars=prs)
+
+            mlt.mlab_source.x=pxs
+            mlt.mlab_source.y=pys
+            mlt.mlab_source.z=pzs
+            mlt.mlab_source.scalars=prs
+
+            # mlab.clf()
+            # mlab.points3d(pxs, pys, pzs, prs,
+            #      mode='point',  # 'point'  'sphere'
+            #      colormap='copper',  #'bone',  #'spectral',  #'copper',
+            #      scale_factor=1)
+
+            # objs = objects[t]
+            # num = len(objs)
+            # for n in range(num):
+            #     b = objs[n].box
+            #     color=COLOR[objs[n].type]
+            #     for k in range(0,4):
+            #         i,j=k,(k+1)%4
+            #         mlab.plot3d([b[i,0], b[j,0]], [b[i,1], b[j,1]], [b[i,2], b[j,2]], color=color, tube_radius=0.05)
+            #
+            #         i,j=k+4,(k+1)%4 + 4
+            #         mlab.plot3d([b[i,0], b[j,0]], [b[i,1], b[j,1]], [b[i,2], b[j,2]], color=color, tube_radius=0.05)
+            #
+            #         i,j=k,k+4
+            #         mlab.plot3d([b[i,0], b[j,0]], [b[i,1], b[j,1]], [b[i,2], b[j,2]], color=color, tube_radius=0.05)
+            #fig.scene.render()
+            #fig.scene.reset_zoom()
+            #fig.scene.render()
+            yield
+
+
+    animate()
+    mlab.orientation_axes()
+    mlab.show()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    exit(0)  #---------------------------------------------------------------
+    lidar = np.load('/root/share/out/didi/lidar_one_frame.npy')
+    pxs=lidar[:,0]
+    pys=lidar[:,1]
+    pzs=lidar[:,2]
+    prs=lidar[:,3]
+
+
+    #--------------------------------------------------------------------------------------------
+    mlab.figure(figure=None, bgcolor=(0,0,0), fgcolor=None, engine=None, size=(500, 500))
+    mlab.points3d(pxs, pys, pzs, prs,
+                         mode='point',  # 'point'  'sphere'
+                         colormap='copper',  #'bone',  #'spectral',  #'copper',
+                         scale_factor=1)
+    mlab.orientation_axes()
+
+    GridSize = [10,10]
+    gx, gy  = [np.linspace(-40,40, G) for G in GridSize]
+    gx, gy = np.meshgrid(gx,gy)
+    gz = gx *0
+    mlab.mesh(gx, gy, gz,  representation='wireframe', color=(1., 1., 1.))
+    # gp = mayavi.modules.grid_plane()
+    # mayavi.add_module(gp)
+    # gp.grid_plane.axis = 'z'
+
+
+     # read tracklets from file
+    tracklet_file = '/root/share/project/didi/data/kitti/dummy/2011_09_26/tracklet_labels.xml'
+
+    num_frames=154
+    objects = read_boxes(tracklet_file, num_frames)
+
+    for t in range(1):
+        objs = objects[t]
+
+        num = len(objs)
+        for n in range(num):
+            b = objs[n].box
+            color=COLOR[objs[n].type]
+            for k in range(0,4):
+                i,j=k,(k+1)%4
+                mlab.plot3d([b[i,0], b[j,0]], [b[i,1], b[j,1]], [b[i,2], b[j,2]], color=color, tube_radius=0.05)
+
+                i,j=k+4,(k+1)%4 + 4
+                mlab.plot3d([b[i,0], b[j,0]], [b[i,1], b[j,1]], [b[i,2], b[j,2]], color=color, tube_radius=0.05)
+
+                i,j=k,k+4
+                mlab.plot3d([b[i,0], b[j,0]], [b[i,1], b[j,1]], [b[i,2], b[j,2]], color=color, tube_radius=0.05)
+
+
+    mlab.show()
+    pass
+
+    exit(0)
+    #------------------------------
+
+
+
+    mayavi.mlab.show()
+    exit(0)
