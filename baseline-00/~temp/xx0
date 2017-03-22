@@ -1,0 +1,59 @@
+            stride, top_lidar_shape, img_scale=1,
+        nms_thresh=None, min_size=None, nms_pre_topn=None, nms_post_topn=None):
+
+
+
+            top_gt_boxes    = tf.placeholder(shape=[None, 4], dtype=tf.float32, name ='gt_boxes'      )  #gt_boxes
+    top_gt_labels    = tf.placeholder(shape=[None, 1], dtype=tf.int32,   name ='gt_boxes'      )
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+       if 1:  #dummy image
+        lidar_top = cv2.imread('/root/share/data/dummy/cls2/panda/Images/train/001.jpg')
+        img_height, img_width, img_channel = lidar_top.shape  #570,427
+
+        gt_labels = np.array([
+           	  1  ,#  panda
+           	  1  ,#  panda
+           	  1  ,#  panda
+           	  1  ,#  panda
+        ], dtype=np.int32)
+        gt_boxes = np.array([ #x1,y1,x2,y2
+            [132,	189,	208,	289],
+            [211,	263,	314,	390],
+            [77,	273,	171,	399],
+            [382,	279,	484,	402],
+        ], dtype=np.float32)
+        gt_boxes_3d = np.array([
+            [[1,1,1],[1,1,1],[1,1,1],[1,1,1],[1,1,1],[1,1,1],[1,1,1],[1,1,1]],
+            [[2,2,2],[2,2,2],[2,2,2],[2,2,2],[2,2,2],[2,2,2],[2,2,2],[2,2,2]],
+            [[3,3,3],[3,3,3],[3,3,3],[3,3,3],[3,3,3],[3,3,3],[3,3,3],[3,3,3]],
+            [[1,1,1],[1,1,1],[1,1,1],[1,1,1],[1,1,1],[1,1,1],[1,1,1],[1,1,1]],
+        ], dtype=np.float32)
+
+        ratios=[0.5, 1, 2]
+        scales=2**np.arange(3, 6 )
+        bases = make_bases(
+            base_size = 16,
+            ratios=ratios,
+            scales=scales
+        )
+        num_bases = len(bases)
+        stride = 8
+        top_lidar_shape   = (427, 570, 3)
+        top_feature_shape = (54, 72,  2*num_bases) #( 143, 107, 3)
+
+
+

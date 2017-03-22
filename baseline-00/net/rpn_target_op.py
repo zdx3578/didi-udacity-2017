@@ -7,7 +7,7 @@ from net.utility.draw import *
 ## base box ##
 
 def convert_w_h_cx_cy(base):
-    """ Return width, height, x center, and y center for a base (bbox). """
+    """ Return width, height, x center, and y center for a base (box). """
 
     w  = base[2] - base[0] + 1
     h  = base[3] - base[1] + 1
@@ -55,7 +55,7 @@ def make_bases(
     ratios=[0.5, 1, 2],
     scales=2**np.arange(3, 6)):
 
-    """  Generate bases by enumerating aspect ratios * scales, wrt a reference (0, 0, 15, 15)  base (bbox). """
+    """  Generate bases by enumerating aspect ratios * scales, wrt a reference (0, 0, 15, 15)  base (box). """
 
     base        = np.array([1, 1, base_size, base_size]) - 1
     ratio_bases = make_bases_given_ratios(base, ratios)
@@ -65,38 +65,30 @@ def make_bases(
 
 
 
-## rpn layer op ##
-def subset_to_set (data, count, inds, fill=0):
-    ''' Unmap a subset of item (data) back to the original set of items (of size count) '''
+# ## rpn layer op ##
+# def subset_to_set (data, count, inds, fill=0):
+#     ''' Unmap a subset of item (data) back to the original set of items (of size count) '''
+#
+#     if len(data.shape) == 1:
+#         ret = np.empty((count, ), dtype=data.dtype)
+#         ret.fill(fill)
+#         ret[inds] = data
+#     else:
+#         ret = np.empty((count, ) + data.shape[1:], dtype=data.dtype)
+#         ret.fill(fill)
+#         ret[inds, :] = data
+#
+#     return ret
 
-    if len(data.shape) == 1:
-        ret = np.empty((count, ), dtype=data.dtype)
-        ret.fill(fill)
-        ret[inds] = data
-    else:
-        ret = np.empty((count, ) + data.shape[1:], dtype=data.dtype)
-        ret.fill(fill)
-        ret[inds, :] = data
 
-    return ret
-
-
-
-def make_regression_targets(et_bboxes, gt_boxes):
-    ''' Compute bounding-box regression targets for an image.'''
-
-    assert et_bboxes.shape[0] == gt_boxes.shape[0]
-    assert et_bboxes.shape[1] == 4
-    assert gt_boxes.shape [1] == 5
-    return bbox_transform(et_bboxes, gt_boxes[:, :4]).astype(np.float32, copy=False)
 
 
 def make_anchors(bases, stride, image_shape, feature_shape, allowed_border=0):
 
-    H, W,_                   = feature_shape
-    img_height, img_width, _ = image_shape
+    H, W                  = feature_shape
+    img_height, img_width = image_shape
 
-    # anchors = shifted bases. Generate proposals from bbox deltas and anchors
+    # anchors = shifted bases. Generate proposals from box deltas and anchors
     shift_x = np.arange(0, W) * stride
     shift_y = np.arange(0, H) * stride
     shift_x, shift_y = np.meshgrid(shift_x, shift_y)
@@ -109,33 +101,35 @@ def make_anchors(bases, stride, image_shape, feature_shape, allowed_border=0):
     num_anchors = int(HW * B)
 
     # only keep anchors inside the image
-    inds_inside = np.where(
+    inside_inds = np.where(
         (anchors[:, 0] >= -allowed_border) &
         (anchors[:, 1] >= -allowed_border) &
         (anchors[:, 2] < img_width  + allowed_border) &  # width
         (anchors[:, 3] < img_height + allowed_border)    # height
-    )[0]
+    )[0].astype(np.int32)
 
-    return anchors, inds_inside
+    return anchors, inside_inds
 
 
 
-# gt_boxes : (x1, y1, x2, y2, label)
-def rpn_target( gt_boxes, anchors, inds_inside ):
 
-    inside_anchors = anchors[inds_inside, :]
+
+# gt_boxes : (x1, y1, x2, y2)
+def rpn_target( anchors, inside_inds, gt_labels,  gt_boxes):
+
+    inside_anchors = anchors[inside_inds, :]
 
     # label: 1 is positive, 0 is negative, -1 is dont care
-    labels = np.empty((len(inds_inside), ), dtype=np.int32)
+    labels = np.empty((len(inside_inds), ), dtype=np.int32)
     labels.fill(-1)
 
     # overlaps between the anchors and the gt process
-    overlaps = bbox_overlaps(
+    overlaps = box_overlaps(
         np.ascontiguousarray(inside_anchors,  dtype=np.float),
         np.ascontiguousarray(gt_boxes,        dtype=np.float))
 
     argmax_overlaps    = overlaps.argmax(axis=1)
-    max_overlaps       = overlaps[np.arange(len(inds_inside)), argmax_overlaps]
+    max_overlaps       = overlaps[np.arange(len(inside_inds)), argmax_overlaps]
     gt_argmax_overlaps = overlaps.argmax(axis=0)
     gt_max_overlaps    = overlaps[gt_argmax_overlaps, np.arange(overlaps.shape[1])]
     gt_argmax_overlaps = np.where(overlaps == gt_max_overlaps)[0]
@@ -159,207 +153,260 @@ def rpn_target( gt_boxes, anchors, inds_inside ):
         disable_inds = np.random.choice(bg_inds, size=(len(bg_inds) - num_bg), replace=False)
         labels[disable_inds] = -1
 
+    idx_label  = np.where(labels != -1)[0]
+    idx_target = np.where(labels ==  1)[0]
 
-    bbox_targets = np.zeros((len(inds_inside), 4), dtype=np.float32)
-    bbox_targets = make_regression_targets(inside_anchors, gt_boxes[argmax_overlaps, :])
+    inds   = inside_inds[idx_label]
+    labels = labels[idx_label]
 
-    num_examples = np.sum(labels >= 0)
-    bbox_weights = np.zeros((len(inds_inside), 4), dtype=np.float32)
-    bbox_weights[labels ==1, :] = 1
+    pos_inds = inside_inds[idx_target]
+    pos_anchors  = inside_anchors[idx_target]
+    pos_gt_boxes = (gt_boxes[argmax_overlaps])[idx_target]
+    targets = box_transform(pos_anchors, pos_gt_boxes)
 
-    # map up to original set of all_anchors
-    num_anchors=len(anchors)
-    labels       = subset_to_set(labels,       num_anchors, inds_inside, fill=-1)
-    bbox_targets = subset_to_set(bbox_targets, num_anchors, inds_inside, fill= 0)
-    bbox_weights = subset_to_set(bbox_weights, num_anchors, inds_inside, fill= 0)
-
-    #print ('ok')
-    #format is HW*B
-    return labels, bbox_targets, bbox_weights
+    return inds, pos_inds, labels, targets
 
 
 
-def tf_rpn_target(gt_boxes, anchors, inds_inside, name='rpn_target'):
+# def tf_rpn_target(gt_boxes, anchors, inside_inds, name='rpn_target'):
+#
+#     #<todo>
+#     #assert batch_size == 1, 'Only single image batches are supported'
+#
+#     return  \
+#         tf.py_func(rpn_target,[gt_boxes, anchors, inside_inds], [tf.int32, tf.float32, tf.float32],
+#         name =name)
+#
 
-    #<todo>
-    #assert batch_size == 1, 'Only single image batches are supported'
 
-    return  \
-        tf.py_func(rpn_target,[gt_boxes, anchors, inds_inside], [tf.int32, tf.float32, tf.float32],
-        name =name)
+## unit test ##---
+def draw_rpn_gt(image, gt_boxes, gt_labels, darken=0.7):
 
-
-
-## unit test ##
-def draw_op_results(rpn_labels,rpn_bbox_targets,rpn_bbox_weights,anchors,_img, gt_boxes, is_print=0):
-
-    img = _img.copy()
-
-    num=len(gt_boxes)
+    ## gt
+    img_gt = image.copy()*darken
+    num =len(gt_boxes)
     for n in range(num):
         b = gt_boxes[n]
-        cv2.rectangle(img,(b[0],b[1]),(b[2],b[3]),(255,255,255),2)
-    imshow('image', img, resize=1)
+        cv2.rectangle(img_gt,(b[0],b[1]),(b[2],b[3]),(0,255,255),2)
+
+    return img_gt
+
+
+def draw_rpn_labels(image, anchors, inds, labels, darken=0.7):
+
+    is_print=0
+    ## yellow (thick): gt
+    ## red     : regression target (before)
+    ## yellow  : regression target (after)
+    ## red  + dot : +ve label
+    ## grey + dot : -ve label
 
     ## draw +ve/-ve labels ......
     num_anchors = len(anchors)
-    labels=rpn_labels.reshape(-1)
+    labels = labels.reshape(-1)
 
-    fg_label_inds = np.where(labels == 1)[0]
-    bg_label_inds = np.where(labels == 0)[0]
+    fg_label_inds = inds[np.where(labels == 1)[0]]
+    bg_label_inds = inds[np.where(labels == 0)[0]]
     num_pos_label = len(fg_label_inds)
     num_neg_label = len(bg_label_inds)
-    if is_print: print ('label : num_pos=%d num_neg=%d,  all = %d'  %(num_pos_label, num_neg_label,num_pos_label+num_neg_label))
+    if is_print: print ('rpn label : num_pos=%d num_neg=%d,  all = %d'  %(num_pos_label, num_neg_label,num_pos_label+num_neg_label))
 
-    img_pos_label = _img.copy()
-    for i in fg_label_inds:
-        a = anchors[i,0:4]
-        cv2.rectangle(img_pos_label,(a[0], a[1]), (a[2], a[3]), (0,0,255), 1)
-        cv2.circle(img_pos_label,(a[0], a[1]),2, (0,0,255), -1)
-    imshow('img_pos_label', img_pos_label)
-
-
-    img_neg_label = _img.copy()
+    img_label = image.copy()*darken
     for i in bg_label_inds:
-        a = anchors[i,0:4]
-        cv2.rectangle(img_neg_label,(a[0], a[1]), (a[2], a[3]), (32,32,32), 1)
-    imshow('img_neg_label',img_neg_label)
+        a = anchors[i]
+        cv2.rectangle(img_label,(a[0], a[1]), (a[2], a[3]), (32,32,32), 1)
+        cv2.circle(img_label,(a[0], a[1]),2, (32,32,32), -1)
+
+    for i in fg_label_inds:
+        a = anchors[i]
+        cv2.rectangle(img_label,(a[0], a[1]), (a[2], a[3]), (0,0,255), 1)
+        cv2.circle(img_label,(a[0], a[1]),2, (0,0,255), -1)
+
+    return img_label
+
+
+
+
+def draw_rpn_targets(image, anchors, pos_inds, targets, darken=0.7):
+    is_print=0
 
     #draw +ve targets ......
-    fg_target_inds = np.where(rpn_bbox_weights.any(axis=1))[0]
+    fg_target_inds = pos_inds
     num_pos_target = len(fg_target_inds)
-    if is_print: print ('target : num_pos=%d'  %(num_pos_target))
+    if is_print: print ('rpn target : num_pos=%d'  %(num_pos_target))
 
-    img_pos_target = _img.copy()
-    for i in fg_target_inds:
-        a = anchors[i,0:4]
-        t = rpn_bbox_targets[i,0:4]
-        b = bbox_transform_inv(a.reshape(1,4), t.reshape(1,4)).reshape(-1)
+    img_target = image.copy()*darken
+    for n,i in enumerate(fg_target_inds):
+        a = anchors[i]
+        t = targets[n]
+        b = box_transform_inv(a.reshape(1,4), t.reshape(1,4))
+        b = b.reshape(-1).astype(np.int32)
 
-        cv2.rectangle(img_pos_target,(a[0], a[1]), (a[2], a[3]), (0,255,255), 1)
-        cv2.rectangle(img_pos_target,(b[0], b[1]), (b[2], b[3]), (255,255,255), 2)
-    imshow('img_pos_target',img_pos_target)
-
-
-
-
-def test_op():
+        cv2.rectangle(img_target,(a[0], a[1]), (a[2], a[3]), (0,0,255), 1)
+        cv2.rectangle(img_target,(b[0], b[1]), (b[2], b[3]), (0,255,255), 1)
+    return img_target
 
 
-    if 0:
-        bases = make_bases(
-            base_size = 16,
-            #ratios=[0.5, 1, 2],
-            #scales=2**np.arange(3, 6))
-            ratios=[0.5, 1, 2],
-            scales=2**np.arange(3, 4 ))
-
-        #(x1, y1, x2, y2, label)
-        # gt_boxes = np.array([[
-        #     150,100,300,340, 1
-        # ]])
-        num_bases = len(bases)
-        stride = 16
-        image_shape   = (480,640,3)
-        feature_shape = (30,40,64)
 
 
-    if 1:
-        ratios=np.array([0.5,1,2], dtype=np.float32)
-        scales=np.array([1,2,3],   dtype=np.int32)
-        bases = make_bases(
-            base_size = 16,
-            ratios=ratios,
-            scales=scales
-        )
-        num_bases = len(bases)
-        stride = 16
-        image_shape   = (400, 400, 3)
-        feature_shape = (25, 25,  2*num_bases)
+
+def draw_rpn(image, probs, deltas, anchors, inside_inds, threshold=0.75, darker=0.7):
+
+    ## yellow (thick): box regression results
+    ## red: box classification results
+
+    img_rpn = image.copy()*darker
+    probs = probs.reshape(-1,2)
+    probs = probs[:,1]
+
+    deltas = deltas.reshape(-1,4)
+    inds = np.argsort(probs)[::-1]       #sort ascend #[::-1]
+
+    num_anchors = len(anchors)
+    insides = np.zeros((num_anchors),dtype=np.int32)
+    insides[inside_inds]=1
+    for j in range(100):
+        i = inds[j]
+        if insides[i]==0:
+            continue
+
+        a = anchors[i]
+        t = deltas[i]
+        b = box_transform_inv(a.reshape(1,4), t.reshape(1,4))
+        #b = clip_boxes(b,img_width,img_height)
+        b = b.reshape(-1)
+        s = probs[i]
+        if s<threshold:
+            continue
+
+        v = s*255
+        cv2.rectangle(img_rpn,(a[0], a[1]), (a[2], a[3]), (0,0,v), 1)
+        cv2.rectangle(img_rpn,(b[0], b[1]), (b[2], b[3]), (0,v,v), 1)
+
+    return img_rpn
 
 
-    if 1:
-        gt_boxes  = np.load('/root/share/project/didi/data/kitti/dummy/one_frame/gt_boxes.npy')
-        num_gts = len(gt_boxes)
 
 
-    if 0:
-        num_gts = 14
-        np.random.seed(101)
-        gt_boxes = np.zeros(shape=(num_gts,5),dtype=np.int)
-        num_bases = len(bases)
-        for n in range(num_gts):
-            i = np.random.randint(0,num_bases)
-            b = bases[i]
-            w = b[2]-b[0]+1
-            h = b[3]-b[1]+1
-            height, width,_ = image_shape
 
-
-            x1=np.random.randint(0,max(1,width -w))
-            y1=np.random.randint(0,max(1,height-h))
-            x2=x1+w
-            y2=y1+h
-            gt_boxes[n] = np.array([x1,y1,x2,y2,1])
-
-
-    image = np.random.uniform(0,255,size=(1, *image_shape))
-    for n in range(num_gts):
-        b = gt_boxes[n]
-        cv2.rectangle(image[0],(b[0],b[1]),(b[2],b[3]),(128,128,128 ),-1)
-
-
-    feature = np.random.uniform(0,1,size=(1, *feature_shape))
-    batch_size, img_height, img_width, _ = image.shape
-
-
-    anchors, inds_inside =  make_anchors(bases, stride, image_shape, feature_shape)
-
-
-    ##check python code without tf ------------------
-    if 0:
-        rpn_labels, rpn_bbox_targets, rpn_bbox_weights = rpn_target(gt_boxes, anchors, inds_inside)
-
-        #show
-        print ('** without tf **')
-        norm_feature = normalise(feature[0,:,:,0:3])
-        norm_image = normalise(image[0,:,:,:])
-        imshow('feature', norm_feature, resize=stride)
-        draw_op_results(rpn_labels,rpn_bbox_targets,rpn_bbox_weights,anchors,norm_image,gt_boxes)
-        cv2.waitKey(0)
-        exit(0)
-    ##-----------------------------------------------
-
-
-    rpn_gt_boxes    = tf.placeholder(shape=[None, 5], dtype=tf.float32, name ='gt_boxes'   )  #gt_boxes
-    rpn_anchors     = tf.placeholder(shape=[None, 4], dtype=tf.int32,   name ='anchors'    )  #anchors
-    rpn_inds_inside = tf.placeholder(shape=[None   ], dtype=tf.int32,   name ='inds_inside')  #inds_inside
-    rpn_target1 = tf_rpn_target (rpn_gt_boxes, rpn_anchors, rpn_inds_inside)
-
-
-    with tf.Session()  as sess:
-        sess.run(tf.global_variables_initializer(),{IS_TRAIN_PHASE:True})
-        #summary_writer = tf.summary.FileWriter(out_dir, sess.graph)
-
-        fd = {
-            rpn_gt_boxes:    gt_boxes,
-            rpn_anchors :    anchors,
-            rpn_inds_inside: inds_inside,
-            IS_TRAIN_PHASE: True
-        }
-        rpn_labels, rpn_bbox_targets, rpn_bbox_weights = sess.run(rpn_target1,fd)
-
-
-        #show
-        print ('** tf **')
-        norm_feature = normalise(feature[0,:,:,0:3])
-        norm_image = normalise(image[0,:,:,:])
-        imshow('feature', norm_feature, resize=stride)
-        draw_op_results(rpn_labels,rpn_bbox_targets,rpn_bbox_weights,anchors,norm_image,gt_boxes)
-        cv2.waitKey(0)
-        exit(0)
-
-        pass
+###  <todo> this function has not been updated
+# def test_op():
+#
+#
+#     if 0:
+#         bases = make_bases(
+#             base_size = 16,
+#             #ratios=[0.5, 1, 2],
+#             #scales=2**np.arange(3, 6))
+#             ratios=[0.5, 1, 2],
+#             scales=2**np.arange(3, 4 ))
+#
+#         #(x1, y1, x2, y2, label)
+#         # gt_boxes = np.array([[
+#         #     150,100,300,340, 1
+#         # ]])
+#         num_bases = len(bases)
+#         stride = 16
+#         image_shape   = (480,640,3)
+#         feature_shape = (30,40,64)
+#
+#
+#     if 1:
+#         ratios=np.array([0.5,1,2], dtype=np.float32)
+#         scales=np.array([1,2,3],   dtype=np.int32)
+#         bases = make_bases(
+#             base_size = 16,
+#             ratios=ratios,
+#             scales=scales
+#         )
+#         num_bases = len(bases)
+#         stride = 16
+#         image_shape   = (400, 400, 3)
+#         feature_shape = (25, 25,  2*num_bases)
+#
+#
+#     if 1:
+#         gt_boxes  = np.load('/root/share/project/didi/data/kitti/dummy/one_frame/gt_boxes.npy')
+#         num_gts = len(gt_boxes)
+#
+#
+#     if 0:
+#         num_gts = 14
+#         np.random.seed(101)
+#         gt_boxes = np.zeros(shape=(num_gts,5),dtype=np.int)
+#         num_bases = len(bases)
+#         for n in range(num_gts):
+#             i = np.random.randint(0,num_bases)
+#             b = bases[i]
+#             w = b[2]-b[0]+1
+#             h = b[3]-b[1]+1
+#             height, width,_ = image_shape
+#
+#
+#             x1=np.random.randint(0,max(1,width -w))
+#             y1=np.random.randint(0,max(1,height-h))
+#             x2=x1+w
+#             y2=y1+h
+#             gt_boxes[n] = np.array([x1,y1,x2,y2,1])
+#
+#
+#     image = np.random.uniform(0,255,size=(1, *image_shape))
+#     for n in range(num_gts):
+#         b = gt_boxes[n]
+#         cv2.rectangle(image[0],(b[0],b[1]),(b[2],b[3]),(128,128,128 ),-1)
+#
+#
+#     feature = np.random.uniform(0,1,size=(1, *feature_shape))
+#     batch_size, img_height, img_width, _ = image.shape
+#
+#
+#     anchors, inside_inds =  make_anchors(bases, stride, image_shape, feature_shape)
+#
+#
+#     ##check python code without tf ------------------
+#     if 0:
+#         rpn_labels, rpn_box_targets, rpn_box_weights = rpn_target(gt_boxes, anchors, inside_inds)
+#
+#         #show
+#         print ('** without tf **')
+#         norm_feature = normalise(feature[0,:,:,0:3])
+#         norm_image = normalise(image[0,:,:,:])
+#         imshow('feature', norm_feature, resize=stride)
+#         draw_op_results(rpn_labels,rpn_box_targets,rpn_box_weights,anchors,norm_image,gt_boxes)
+#         cv2.waitKey(0)
+#         exit(0)
+#     ##-----------------------------------------------
+#
+#
+#     rpn_gt_boxes    = tf.placeholder(shape=[None, 5], dtype=tf.float32, name ='gt_boxes'   )  #gt_boxes
+#     rpn_anchors     = tf.placeholder(shape=[None, 4], dtype=tf.int32,   name ='anchors'    )  #anchors
+#     rpn_inside_inds = tf.placeholder(shape=[None   ], dtype=tf.int32,   name ='inside_inds')  #inside_inds
+#     rpn_target1 = tf_rpn_target (rpn_gt_boxes, rpn_anchors, rpn_inside_inds)
+#
+#
+#     with tf.Session()  as sess:
+#         sess.run(tf.global_variables_initializer(),{IS_TRAIN_PHASE:True})
+#         #summary_writer = tf.summary.FileWriter(out_dir, sess.graph)
+#
+#         fd = {
+#             rpn_gt_boxes:    gt_boxes,
+#             rpn_anchors :    anchors,
+#             rpn_inside_inds: inside_inds,
+#             IS_TRAIN_PHASE: True
+#         }
+#         rpn_labels, rpn_box_targets, rpn_box_weights = sess.run(rpn_target1,fd)
+#
+#
+#         #show
+#         print ('** tf **')
+#         norm_feature = normalise(feature[0,:,:,0:3])
+#         norm_image = normalise(image[0,:,:,:])
+#         imshow('feature', norm_feature, resize=stride)
+#         draw_op_results(rpn_labels,rpn_box_targets,rpn_box_weights,anchors,norm_image,gt_boxes)
+#         cv2.waitKey(0)
+#         exit(0)
+#
+#         pass
 
 
 ## main ##----------------------------------------------------------------

@@ -1,0 +1,8 @@
+1. change orientation of top view
+2. mask for selecting ignore anchor
+3. cluster, etc to find best anchor aspect, etc
+4. top view preprocessing: best height? best with, etc
+
+
+batch_size more than 1
+renomalisation

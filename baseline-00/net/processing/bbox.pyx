@@ -12,7 +12,7 @@ cimport numpy as np
 DTYPE = np.float
 ctypedef np.float_t DTYPE_t
 
-def bbox_overlaps(
+def box_overlaps(
         np.ndarray[DTYPE_t, ndim=2] boxes,
         np.ndarray[DTYPE_t, ndim=2] query_boxes):
     """
@@ -55,7 +55,7 @@ def bbox_overlaps(
     return overlaps
 
 # Compute bounding box voting
-def bbox_vote(
+def box_vote(
         np.ndarray[float, ndim=2] dets_NMS,
         np.ndarray[float, ndim=2] dets_all):
     cdef np.ndarray[float, ndim=2] dets_voted = np.zeros((dets_NMS.shape[0], dets_NMS.shape[1]), dtype=np.float32)

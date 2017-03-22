@@ -109,8 +109,8 @@ class custom_build_ext(build_ext):
 
 ext_modules = [
     Extension(
-        "cython_bbox",
-        ["bbox.pyx"],
+        "cython_box",
+        ["box.pyx"],
         extra_compile_args= ["-Wno-cpp", "-Wno-unused-function"],
 	    include_dirs = [numpy_include],
         library_dirs=['/opt/anaconda3/lib']

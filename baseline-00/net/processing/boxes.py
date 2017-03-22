@@ -1,35 +1,43 @@
 from net.configuration import CFG
 
-from net.processing.cython_bbox import bbox_overlaps
-from net.processing.cython_bbox import bbox_vote
+from net.processing.cython_bbox import bbox_overlaps as box_overlaps
+#from net.processing.cython_box import box_vote
 #from net.processing.gpu_nms import gpu_nms as nms   ##unknown bug ???
 from net.processing.cpu_nms import cpu_nms as nms
 
 import numpy as np
 
 #     roi  : i, x1,y1,x2,y2  i=image_index  
-#     bbox : x1,y1,x2,y2,  
-#     box  : x1,y1,x2,y2, label 
-# or  box  : x1,y1,x2,y2, score 
-#     det  : x1,y1,x2,y2, score 
-#     annotation : box, ... other information, ...
+#     box : x1,y1,x2,y2,
 
 
+def clip_boxes(boxes, width, height):
+    ''' Clip process to image boundaries. '''
+
+    # x1 >= 0
+    boxes[:, 0::4] = np.maximum(np.minimum(boxes[:, 0::4], width - 1), 0)
+    # y1 >= 0
+    boxes[:, 1::4] = np.maximum(np.minimum(boxes[:, 1::4], height - 1), 0)
+    # x2 < width
+    boxes[:, 2::4] = np.maximum(np.minimum(boxes[:, 2::4], width - 1), 0)
+    # y2 < height
+    boxes[:, 3::4] = np.maximum(np.minimum(boxes[:, 3::4], height - 1), 0)
+    return boxes
 
 
 # et_boxes = estimated 
 # gt_boxes = ground truth 
 
-def bbox_transform(et_bboxes, gt_bboxes):
-    et_ws  = et_bboxes[:, 2] - et_bboxes[:, 0] + 1.0
-    et_hs  = et_bboxes[:, 3] - et_bboxes[:, 1] + 1.0
-    et_cxs = et_bboxes[:, 0] + 0.5 * et_ws
-    et_cys = et_bboxes[:, 1] + 0.5 * et_hs
+def box_transform(et_boxes, gt_boxes):
+    et_ws  = et_boxes[:, 2] - et_boxes[:, 0] + 1.0
+    et_hs  = et_boxes[:, 3] - et_boxes[:, 1] + 1.0
+    et_cxs = et_boxes[:, 0] + 0.5 * et_ws
+    et_cys = et_boxes[:, 1] + 0.5 * et_hs
      
-    gt_ws  = gt_bboxes[:, 2] - gt_bboxes[:, 0] + 1.0
-    gt_hs  = gt_bboxes[:, 3] - gt_bboxes[:, 1] + 1.0
-    gt_cxs = gt_bboxes[:, 0] + 0.5 * gt_ws
-    gt_cys = gt_bboxes[:, 1] + 0.5 * gt_hs
+    gt_ws  = gt_boxes[:, 2] - gt_boxes[:, 0] + 1.0
+    gt_hs  = gt_boxes[:, 3] - gt_boxes[:, 1] + 1.0
+    gt_cxs = gt_boxes[:, 0] + 0.5 * gt_ws
+    gt_cys = gt_boxes[:, 1] + 0.5 * gt_hs
      
     dxs = (gt_cxs - et_cxs) / et_ws
     dys = (gt_cys - et_cys) / et_hs
@@ -41,40 +49,44 @@ def bbox_transform(et_bboxes, gt_bboxes):
 
 
 
-def bbox_transform_inv(bboxes, deltas):
+def box_transform_inv(et_boxes, deltas):
 
-    if bboxes.shape[0] == 0: 
-        return np.zeros((0, deltas.shape[1]), dtype=deltas.dtype)
+    num = len(et_boxes)
+    boxes = np.zeros((num,4), dtype=np.float32)
+    if num == 0: return boxes
 
-    bboxes = bboxes.astype(deltas.dtype, copy=False) 
-    ws  = bboxes[:, 2] - bboxes[:, 0] + 1.0
-    hs  = bboxes[:, 3] - bboxes[:, 1] + 1.0
-    cxs = bboxes[:, 0] + 0.5 * ws
-    cys = bboxes[:, 1] + 0.5 * hs
+    et_ws  = et_boxes[:, 2] - et_boxes[:, 0] + 1.0
+    et_hs  = et_boxes[:, 3] - et_boxes[:, 1] + 1.0
+    et_cxs = et_boxes[:, 0] + 0.5 * et_ws
+    et_cys = et_boxes[:, 1] + 0.5 * et_hs
+
+    et_ws  = et_ws [:, np.newaxis]
+    et_hs  = et_hs [:, np.newaxis]
+    et_cxs = et_cxs[:, np.newaxis]
+    et_cys = et_cys[:, np.newaxis]
 
     dxs = deltas[:, 0::4]
     dys = deltas[:, 1::4]
     dws = deltas[:, 2::4]
     dhs = deltas[:, 3::4]
 
-    pred_cxs = dxs * ws[:, np.newaxis] + cxs[:, np.newaxis]
-    pred_cys = dys * hs[:, np.newaxis] + cys[:, np.newaxis]
-    pred_ws = np.exp(dws) * ws[:, np.newaxis]
-    pred_hs = np.exp(dhs) * hs[:, np.newaxis]
+    cxs = dxs * et_ws + et_cxs
+    cys = dys * et_hs + et_cys
+    ws  = np.exp(dws) * et_ws
+    hs  = np.exp(dhs) * et_hs
 
-    pred_bboxes = np.zeros(deltas.shape, dtype=deltas.dtype) 
-    pred_bboxes[:, 0::4] = pred_cxs - 0.5 * pred_ws  # x1, y1,x2,y2
-    pred_bboxes[:, 1::4] = pred_cys - 0.5 * pred_hs 
-    pred_bboxes[:, 2::4] = pred_cxs + 0.5 * pred_ws 
-    pred_bboxes[:, 3::4] = pred_cys + 0.5 * pred_hs
+    boxes[:, 0::4] = cxs - 0.5 * ws  # x1, y1,x2,y2
+    boxes[:, 1::4] = cys - 0.5 * hs
+    boxes[:, 2::4] = cxs + 0.5 * ws
+    boxes[:, 3::4] = cys + 0.5 * hs
 
-    return pred_bboxes
+    return boxes
 
 # nms  ###################################################################
-def non_max_suppress(bboxes, scores, num_classes, 
+def non_max_suppress(boxes, scores, num_classes,
                      nms_after_thesh=CFG.TEST.RCNN_NMS_AFTER, 
                      nms_before_score_thesh=0.05, 
-                     is_bbox_vote=False,
+                     is_box_vote=False,
                      max_per_image=100 ):
 
    
@@ -87,15 +99,15 @@ def non_max_suppress(bboxes, scores, num_classes,
         inds = np.where(scores[:, j] > nms_before_score_thesh)[0]
          
         cls_scores = scores[inds, j]
-        cls_boxes  = bboxes [inds, j*4:(j+1)*4]
+        cls_boxes  = boxes [inds, j*4:(j+1)*4]
         cls_dets   = np.hstack((cls_boxes, cls_scores[:, np.newaxis])).astype(np.float32, copy=False) 
 
-        # is_bbox_vote=0
+        # is_box_vote=0
         if len(inds)>0:
             keep = nms(cls_dets, nms_after_thesh) 
             dets_NMSed = cls_dets[keep, :] 
-            if is_bbox_vote:
-                cls_dets = bbox_vote(dets_NMSed, cls_dets)
+            if is_box_vote:
+                cls_dets = box_vote(dets_NMSed, cls_dets)
             else:
                 cls_dets = dets_NMSed 
 
@@ -112,16 +124,3 @@ def non_max_suppress(bboxes, scores, num_classes,
                 nms_boxes[j] = nms_boxes[j][keep, :]
 
     return nms_boxes  
-
-def clip_boxes(bboxes, width, height):
-    ''' Clip process to image boundaries. '''
-
-    # x1 >= 0
-    bboxes[:, 0::4] = np.maximum(np.minimum(bboxes[:, 0::4], width - 1), 0)
-    # y1 >= 0
-    bboxes[:, 1::4] = np.maximum(np.minimum(bboxes[:, 1::4], height - 1), 0)
-    # x2 < width
-    bboxes[:, 2::4] = np.maximum(np.minimum(bboxes[:, 2::4], width - 1), 0)
-    # y2 < height
-    bboxes[:, 3::4] = np.maximum(np.minimum(bboxes[:, 3::4], height - 1), 0)
-    return bboxes

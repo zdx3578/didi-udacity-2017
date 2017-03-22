@@ -1,0 +1,1417 @@
+/opt/anaconda3/bin/python /root/share/project/didi/build/baseline-00/net/roi_pooling_op/roi_pooling_op_test.py
+I tensorflow/stream_executor/dso_loader.cc:135] successfully opened CUDA library libcublas.so.8.0 locally
+I tensorflow/stream_executor/dso_loader.cc:135] successfully opened CUDA library libcudnn.so.5 locally
+I tensorflow/stream_executor/dso_loader.cc:135] successfully opened CUDA library libcufft.so.8.0 locally
+I tensorflow/stream_executor/dso_loader.cc:135] successfully opened CUDA library libcuda.so.1 locally
+I tensorflow/stream_executor/dso_loader.cc:135] successfully opened CUDA library libcurand.so.8.0 locally
+running init code of roi pooling
+roi_pooling_op_test.py: calling main function ...
+W tensorflow/core/platform/cpu_feature_guard.cc:45] The TensorFlow library wasn't compiled to use SSE3 instructions, but these are available on your machine and could speed up CPU computations.
+W tensorflow/core/platform/cpu_feature_guard.cc:45] The TensorFlow library wasn't compiled to use SSE4.1 instructions, but these are available on your machine and could speed up CPU computations.
+W tensorflow/core/platform/cpu_feature_guard.cc:45] The TensorFlow library wasn't compiled to use SSE4.2 instructions, but these are available on your machine and could speed up CPU computations.
+W tensorflow/core/platform/cpu_feature_guard.cc:45] The TensorFlow library wasn't compiled to use AVX instructions, but these are available on your machine and could speed up CPU computations.
+W tensorflow/core/platform/cpu_feature_guard.cc:45] The TensorFlow library wasn't compiled to use AVX2 instructions, but these are available on your machine and could speed up CPU computations.
+W tensorflow/core/platform/cpu_feature_guard.cc:45] The TensorFlow library wasn't compiled to use FMA instructions, but these are available on your machine and could speed up CPU computations.
+-----------------------------
+y_hat, y, argmax
+Tensor("Const_2:0", shape=(2, 6, 6, 1), dtype=float32) Tensor("RoiPool:0", shape=(2, 6, 6, 1), dtype=float32) Tensor("RoiPool:1", shape=(2, 6, 6, 1), dtype=int32)
+I tensorflow/core/common_runtime/gpu/gpu_device.cc:885] Found device 0 with properties:
+name: TITAN X (Pascal)
+major: 6 minor: 1 memoryClockRate (GHz) 1.531
+pciBusID 0000:05:00.0
+Total memory: 11.90GiB
+Free memory: 10.95GiB
+I tensorflow/core/common_runtime/gpu/gpu_device.cc:906] DMA: 0
+I tensorflow/core/common_runtime/gpu/gpu_device.cc:916] 0:   Y
+I tensorflow/core/common_runtime/gpu/gpu_device.cc:975] Creating TensorFlow device (/gpu:0) -> (device: 0, name: TITAN X (Pascal), pci bus id: 0000:05:00.0)
+I tensorflow/core/common_runtime/direct_session.cc:257] Device mapping:
+/job:localhost/replica:0/task:0/gpu:0 -> device: 0, name: TITAN X (Pascal), pci bus id: 0000:05:00.0
+
+Device mapping:
+/job:localhost/replica:0/task:0/gpu:0 -> device: 0, name: TITAN X (Pascal), pci bus id: 0000:05:00.0
+gradients/sub_grad/BroadcastGradientArgs: (BroadcastGradientArgs): /job:localhost/replica:0/task:0/gpu:0
+gradients/Mean_grad/Prod_1: (Prod): /job:localhost/replica:0/task:0/gpu:0
+gradients/Mean_grad/Maximum: (Maximum): /job:localhost/replica:0/task:0/gpu:0
+gradients/Mean_grad/Prod: (Prod): /job:localhost/replica:0/task:0/gpu:0
+gradients/Mean_grad/floordiv: (FloorDiv): /job:localhost/replica:0/task:0/gpu:0
+gradients/Mean_grad/Cast: (Cast): /job:localhost/replica:0/task:0/gpu:0
+gradients/Fill: (Fill): /job:localhost/replica:0/task:0/gpu:0
+gradients/Mean_grad/Reshape: (Reshape): /job:localhost/replica:0/task:0/gpu:0
+gradients/Mean_grad/Tile: (Tile): /job:localhost/replica:0/task:0/gpu:0
+gradients/Mean_grad/truediv: (RealDiv): /job:localhost/replica:0/task:0/gpu:0
+Variable: (VariableV2): /job:localhost/replica:0/task:0/gpu:0
+Variable/read: (Identity): /job:localhost/replica:0/task:0/gpu:0
+truncated_normal/TruncatedNormal: (TruncatedNormal): /job:localhost/replica:0/task:0/gpu:0
+truncated_normal/mul: (Mul): /job:localhost/replica:0/task:0/gpu:0
+truncated_normal: (Add): /job:localhost/replica:0/task:0/gpu:0
+Variable/Assign: (Assign): /job:localhost/replica:0/task:0/gpu:0
+init: (NoOp): /job:localhost/replica:0/task:0/gpu:0
+Conv2D: (Conv2D): /job:localhost/replica:0/task:0/gpu:0
+RoiPool: (RoiPool): /job:localhost/replica:0/task:0/gpu:0
+sub: (Sub): /job:localhost/replica:0/task:0/gpu:0
+gradients/Square_grad/mul: (Mul): /job:localhost/replica:0/task:0/gpu:0
+gradients/Square_grad/mul_1: (Mul): /job:localhost/replica:0/task:0/gpu:0
+gradients/sub_grad/Sum_1: (Sum): /job:localhost/replica:0/task:0/gpu:0
+gradients/sub_grad/Neg: (Neg): /job:localhost/replica:0/task:0/gpu:0
+gradients/sub_grad/Reshape_1: (Reshape): /job:localhost/replica:0/task:0/gpu:0
+gradients/sub_grad/Sum: (Sum): /job:localhost/replica:0/task:0/gpu:0
+gradients/sub_grad/Reshape: (Reshape): /job:localhost/replica:0/task:0/gpu:0
+gradients/sub_grad/tuple/group_deps: (NoOp): /job:localhost/replica:0/task:0/gpu:0
+gradients/sub_grad/tuple/control_dependency_1: (Identity): /job:localhost/replica:0/task:0/gpu:0
+gradients/sub_grad/tuple/control_dependency: (Identity): /job:localhost/replica:0/task:0/gpu:0
+gradients/RoiPool_grad/RoiPoolGrad: (RoiPoolGrad): /job:localhost/replica:0/task:0/gpu:0
+gradients/Conv2D_grad/Conv2DBackpropFilter: (Conv2DBackpropFilter): /job:localhost/replica:0/task:0/gpu:0
+gradients/Conv2D_grad/Conv2DBackpropInput: (Conv2DBackpropInput): /job:localhost/replica:0/task:0/gpu:0
+gradients/Conv2D_grad/tuple/group_deps: (NoOp): /job:localhost/replica:0/task:0/gpu:0
+gradients/Conv2D_grad/tuple/control_dependency_1: (Identity): /job:localhost/replica:0/task:0/gpu:0
+GradientDescent/update_Variable/ApplyGradientDescent: (ApplyGradientDescent): /job:localhost/replica:0/task:0/gpu:0
+GradientDescent: (NoOp): /job:localhost/replica:0/task:0/gpu:0
+gradients/Conv2D_grad/tuple/control_dependency: (Identity): /job:localhost/replica:0/task:0/gpu:0
+Square: (Square): /job:localhost/replica:0/task:0/gpu:0
+Mean: (Mean): /job:localhost/replica:0/task:0/gpu:0
+GradientDescent/learning_rate: (Const): /job:localhost/replica:0/task:0/gpu:0
+gradients/Conv2D_grad/Shape_1: (Const): /job:localhost/replica:0/task:0/gpu:0
+gradients/Conv2D_grad/Shape: (Const): /job:localhost/replica:0/task:0/gpu:0
+gradients/sub_grad/Shape_1: (Const): /job:localhost/replica:0/task:0/gpu:0
+gradients/sub_grad/Shape: (Const): /job:localhost/replica:0/task:0/gpu:0
+gradients/Mean_grad/Maximum/y: (Const): /job:localhost/replica:0/task:0/gpu:0
+gradients/Mean_grad/Const_1: (Const): /job:localhost/replica:0/task:0/gpu:0
+gradients/Mean_grad/Const: (Const): /job:localhost/replica:0/task:0/gpu:0
+gradients/Mean_grad/Shape_1: (Const): /job:localhost/replica:0/task:0/gpu:0
+gradients/Mean_grad/Shape: (Const): /job:localhost/replica:0/task:0/gpu:0
+gradients/Mean_grad/Tile/multiples: (Const): /job:localhost/replica:0/task:0/gpu:0
+gradients/Mean_grad/Reshape/shape: (Const): /job:localhost/replica:0/task:0/gpu:0
+gradients/Const: (Const): /job:localhost/replica:0/task:0/gpu:0
+gradients/Shape: (Const): /job:localhost/replica:0/task:0/gpu:0
+gradients/Square_grad/mul/x: (Const): /job:localhost/replica:0/task:0/gpu:0
+Const_3: (Const): /job:localhost/replica:0/task:0/gpu:0
+Const_2: (Const): /job:localhost/replica:0/task:0/gpu:0
+truncated_normal/stddev: (Const): /job:localhost/replica:0/task:0/gpu:0
+truncated_normal/mean: (Const): /job:localhost/replica:0/task:0/gpu:0
+truncated_normal/shape: (Const): /job:localhost/replica:0/task:0/gpu:0
+Const_1: (Const): /job:localhost/replica:0/task:0/gpu:0
+Const: (Const): /job:localhost/replica:0/task:0/gpu:0
+I tensorflow/core/common_runtime/simple_placer.cc:841] gradients/sub_grad/BroadcastGradientArgs: (BroadcastGradientArgs)/job:localhost/replica:0/task:0/gpu:0
+I tensorflow/core/common_runtime/simple_placer.cc:841] gradients/Mean_grad/Prod_1: (Prod)/job:localhost/replica:0/task:0/gpu:0
+I tensorflow/core/common_runtime/simple_placer.cc:841] gradients/Mean_grad/Maximum: (Maximum)/job:localhost/replica:0/task:0/gpu:0
+I tensorflow/core/common_runtime/simple_placer.cc:841] gradients/Mean_grad/Prod: (Prod)/job:localhost/replica:0/task:0/gpu:0
+I tensorflow/core/common_runtime/simple_placer.cc:841] gradients/Mean_grad/floordiv: (FloorDiv)/job:localhost/replica:0/task:0/gpu:0
+I tensorflow/core/common_runtime/simple_placer.cc:841] gradients/Mean_grad/Cast: (Cast)/job:localhost/replica:0/task:0/gpu:0
+I tensorflow/core/common_runtime/simple_placer.cc:841] gradients/Fill: (Fill)/job:localhost/replica:0/task:0/gpu:0
+I tensorflow/core/common_runtime/simple_placer.cc:841] gradients/Mean_grad/Reshape: (Reshape)/job:localhost/replica:0/task:0/gpu:0
+I tensorflow/core/common_runtime/simple_placer.cc:841] gradients/Mean_grad/Tile: (Tile)/job:localhost/replica:0/task:0/gpu:0
+I tensorflow/core/common_runtime/simple_placer.cc:841] gradients/Mean_grad/truediv: (RealDiv)/job:localhost/replica:0/task:0/gpu:0
+I tensorflow/core/common_runtime/simple_placer.cc:841] Variable: (VariableV2)/job:localhost/replica:0/task:0/gpu:0
+I tensorflow/core/common_runtime/simple_placer.cc:841] Variable/read: (Identity)/job:localhost/replica:0/task:0/gpu:0
+I tensorflow/core/common_runtime/simple_placer.cc:841] truncated_normal/TruncatedNormal: (TruncatedNormal)/job:localhost/replica:0/task:0/gpu:0
+I tensorflow/core/common_runtime/simple_placer.cc:841] truncated_normal/mul: (Mul)/job:localhost/replica:0/task:0/gpu:0
+I tensorflow/core/common_runtime/simple_placer.cc:841] truncated_normal: (Add)/job:localhost/replica:0/task:0/gpu:0
+I tensorflow/core/common_runtime/simple_placer.cc:841] Variable/Assign: (Assign)/job:localhost/replica:0/task:0/gpu:0
+I tensorflow/core/common_runtime/simple_placer.cc:841] init: (NoOp)/job:localhost/replica:0/task:0/gpu:0
+I tensorflow/core/common_runtime/simple_placer.cc:841] Conv2D: (Conv2D)/job:localhost/replica:0/task:0/gpu:0
+I tensorflow/core/common_runtime/simple_placer.cc:841] RoiPool: (RoiPool)/job:localhost/replica:0/task:0/gpu:0
+I tensorflow/core/common_runtime/simple_placer.cc:841] sub: (Sub)/job:localhost/replica:0/task:0/gpu:0
+I tensorflow/core/common_runtime/simple_placer.cc:841] gradients/Square_grad/mul: (Mul)/job:localhost/replica:0/task:0/gpu:0
+I tensorflow/core/common_runtime/simple_placer.cc:841] gradients/Square_grad/mul_1: (Mul)/job:localhost/replica:0/task:0/gpu:0
+I tensorflow/core/common_runtime/simple_placer.cc:841] gradients/sub_grad/Sum_1: (Sum)/job:localhost/replica:0/task:0/gpu:0
+I tensorflow/core/common_runtime/simple_placer.cc:841] gradients/sub_grad/Neg: (Neg)/job:localhost/replica:0/task:0/gpu:0
+I tensorflow/core/common_runtime/simple_placer.cc:841] gradients/sub_grad/Reshape_1: (Reshape)/job:localhost/replica:0/task:0/gpu:0
+I tensorflow/core/common_runtime/simple_placer.cc:841] gradients/sub_grad/Sum: (Sum)/job:localhost/replica:0/task:0/gpu:0
+I tensorflow/core/common_runtime/simple_placer.cc:841] gradients/sub_grad/Reshape: (Reshape)/job:localhost/replica:0/task:0/gpu:0
+I tensorflow/core/common_runtime/simple_placer.cc:841] gradients/sub_grad/tuple/group_deps: (NoOp)/job:localhost/replica:0/task:0/gpu:0
+I tensorflow/core/common_runtime/simple_placer.cc:841] gradients/sub_grad/tuple/control_dependency_1: (Identity)/job:localhost/replica:0/task:0/gpu:0
+I tensorflow/core/common_runtime/simple_placer.cc:841] gradients/sub_grad/tuple/control_dependency: (Identity)/job:localhost/replica:0/task:0/gpu:0
+I tensorflow/core/common_runtime/simple_placer.cc:841] gradients/RoiPool_grad/RoiPoolGrad: (RoiPoolGrad)/job:localhost/replica:0/task:0/gpu:0
+I tensorflow/core/common_runtime/simple_placer.cc:841] gradients/Conv2D_grad/Conv2DBackpropFilter: (Conv2DBackpropFilter)/job:localhost/replica:0/task:0/gpu:0
+I tensorflow/core/common_runtime/simple_placer.cc:841] gradients/Conv2D_grad/Conv2DBackpropInput: (Conv2DBackpropInput)/job:localhost/replica:0/task:0/gpu:0
+I tensorflow/core/common_runtime/simple_placer.cc:841] gradients/Conv2D_grad/tuple/group_deps: (NoOp)/job:localhost/replica:0/task:0/gpu:0
+I tensorflow/core/common_runtime/simple_placer.cc:841] gradients/Conv2D_grad/tuple/control_dependency_1: (Identity)/job:localhost/replica:0/task:0/gpu:0
+I tensorflow/core/common_runtime/simple_placer.cc:841] GradientDescent/update_Variable/ApplyGradientDescent: (ApplyGradientDescent)/job:localhost/replica:0/task:0/gpu:0
+I tensorflow/core/common_runtime/simple_placer.cc:841] GradientDescent: (NoOp)/job:localhost/replica:0/task:0/gpu:0
+I tensorflow/core/common_runtime/simple_placer.cc:841] gradients/Conv2D_grad/tuple/control_dependency: (Identity)/job:localhost/replica:0/task:0/gpu:0
+I tensorflow/core/common_runtime/simple_placer.cc:841] Square: (Square)/job:localhost/replica:0/task:0/gpu:0
+I tensorflow/core/common_runtime/simple_placer.cc:841] Mean: (Mean)/job:localhost/replica:0/task:0/gpu:0
+I tensorflow/core/common_runtime/simple_placer.cc:841] GradientDescent/learning_rate: (Const)/job:localhost/replica:0/task:0/gpu:0
+I tensorflow/core/common_runtime/simple_placer.cc:841] gradients/Conv2D_grad/Shape_1: (Const)/job:localhost/replica:0/task:0/gpu:0
+I tensorflow/core/common_runtime/simple_placer.cc:841] gradients/Conv2D_grad/Shape: (Const)/job:localhost/replica:0/task:0/gpu:0
+I tensorflow/core/common_runtime/simple_placer.cc:841] gradients/sub_grad/Shape_1: (Const)/job:localhost/replica:0/task:0/gpu:0
+I tensorflow/core/common_runtime/simple_placer.cc:841] gradients/sub_grad/Shape: (Const)/job:localhost/replica:0/task:0/gpu:0
+I tensorflow/core/common_runtime/simple_placer.cc:841] gradients/Mean_grad/Maximum/y: (Const)/job:localhost/replica:0/task:0/gpu:0
+I tensorflow/core/common_runtime/simple_placer.cc:841] gradients/Mean_grad/Const_1: (Const)/job:localhost/replica:0/task:0/gpu:0
+I tensorflow/core/common_runtime/simple_placer.cc:841] gradients/Mean_grad/Const: (Const)/job:localhost/replica:0/task:0/gpu:0
+I tensorflow/core/common_runtime/simple_placer.cc:841] gradients/Mean_grad/Shape_1: (Const)/job:localhost/replica:0/task:0/gpu:0
+I tensorflow/core/common_runtime/simple_placer.cc:841] gradients/Mean_grad/Shape: (Const)/job:localhost/replica:0/task:0/gpu:0
+I tensorflow/core/common_runtime/simple_placer.cc:841] gradients/Mean_grad/Tile/multiples: (Const)/job:localhost/replica:0/task:0/gpu:0
+I tensorflow/core/common_runtime/simple_placer.cc:841] gradients/Mean_grad/Reshape/shape: (Const)/job:localhost/replica:0/task:0/gpu:0
+I tensorflow/core/common_runtime/simple_placer.cc:841] gradients/Const: (Const)/job:localhost/replica:0/task:0/gpu:0
+I tensorflow/core/common_runtime/simple_placer.cc:841] gradients/Shape: (Const)/job:localhost/replica:0/task:0/gpu:0
+I tensorflow/core/common_runtime/simple_placer.cc:841] gradients/Square_grad/mul/x: (Const)/job:localhost/replica:0/task:0/gpu:0
+I tensorflow/core/common_runtime/simple_placer.cc:841] Const_3: (Const)/job:localhost/replica:0/task:0/gpu:0
+I tensorflow/core/common_runtime/simple_placer.cc:841] Const_2: (Const)/job:localhost/replica:0/task:0/gpu:0
+I tensorflow/core/common_runtime/simple_placer.cc:841] truncated_normal/stddev: (Const)/job:localhost/replica:0/task:0/gpu:0
+I tensorflow/core/common_runtime/simple_placer.cc:841] truncated_normal/mean: (Const)/job:localhost/replica:0/task:0/gpu:0
+I tensorflow/core/common_runtime/simple_placer.cc:841] truncated_normal/shape: (Const)/job:localhost/replica:0/task:0/gpu:0
+I tensorflow/core/common_runtime/simple_placer.cc:841] Const_1: (Const)/job:localhost/replica:0/task:0/gpu:0
+I tensorflow/core/common_runtime/simple_placer.cc:841] Const: (Const)/job:localhost/replica:0/task:0/gpu:0
+-----------------------------
+iter=0,  loss=1.333561
+weights:
+ [[[[ 0.67094368]
+   [ 0.51916528]
+   [ 0.32712913]]
+
+  [[ 0.61092442]
+   [ 0.53025758]
+   [ 0.54545993]]
+
+  [[ 0.58366579]
+   [ 0.7700305 ]
+   [ 0.50595075]]]
+
+
+ [[[ 0.58622044]
+   [ 0.67343903]
+   [ 0.51766455]]
+
+  [[ 0.88503683]
+   [ 0.57286513]
+   [ 0.72676516]]
+
+  [[ 0.62696171]
+   [ 0.44075665]
+   [ 0.61587059]]]
+
+
+ [[[ 0.45941362]
+   [ 0.43670517]
+   [ 0.50273865]]
+
+  [[ 0.32271871]
+   [ 0.75006312]
+   [ 0.50758797]]
+
+  [[ 0.67640454]
+   [ 0.60803455]
+   [ 0.5800122 ]]]]
+estimates:
+ [[[[ 7.74106407]
+   [ 7.77335024]
+   [ 8.47502804]
+   [ 8.47502804]
+   [ 8.5702734 ]
+   [ 8.5702734 ]]
+
+  [[ 8.21701908]
+   [ 8.70176792]
+   [ 9.0049839 ]
+   [ 9.0049839 ]
+   [ 8.76286888]
+   [ 8.5702734 ]]
+
+  [[ 8.21701908]
+   [ 8.70176792]
+   [ 9.0049839 ]
+   [ 9.0049839 ]
+   [ 8.76286888]
+   [ 7.74882555]]
+
+  [[ 7.09741306]
+   [ 7.63768435]
+   [ 7.63768435]
+   [ 7.67144394]
+   [ 7.67144394]
+   [ 7.46904278]]
+
+  [[ 7.89770937]
+   [ 8.5707283 ]
+   [ 8.5707283 ]
+   [ 7.89396238]
+   [ 8.1755724 ]
+   [ 8.1755724 ]]
+
+  [[ 7.89770937]
+   [ 8.5707283 ]
+   [ 8.5707283 ]
+   [ 7.89396238]
+   [ 8.1755724 ]
+   [ 8.1755724 ]]]
+
+
+ [[[ 7.888484  ]
+   [ 8.07379246]
+   [ 8.07379246]
+   [ 7.44531965]
+   [ 7.75728655]
+   [ 7.75728655]]
+
+  [[ 7.888484  ]
+   [ 8.83033752]
+   [ 8.83033752]
+   [ 8.89850998]
+   [ 9.55968571]
+   [ 9.55968571]]
+
+  [[ 7.59006786]
+   [ 8.83033752]
+   [ 8.83033752]
+   [ 8.89850998]
+   [ 9.55968571]
+   [ 9.55968571]]
+
+  [[ 6.80185556]
+   [ 8.78867722]
+   [ 8.78867722]
+   [ 9.74118519]
+   [ 9.74118519]
+   [ 9.51580715]]
+
+  [[ 7.65312004]
+   [ 8.78867722]
+   [ 8.78867722]
+   [ 9.74118519]
+   [ 9.74118519]
+   [ 9.51580715]]
+
+  [[ 7.65312004]
+   [ 8.70398045]
+   [ 8.70398045]
+   [ 9.02573681]
+   [ 9.02573681]
+   [ 8.844594  ]]]]
+
+-----------------------------
+iter=1,  loss=56.399162
+weights:
+ [[[[-3.46992016]
+   [-3.15514135]
+   [-2.77449274]]
+
+  [[-3.55610204]
+   [-3.00219822]
+   [-3.13914227]]
+
+  [[-3.95053816]
+   [-3.13785362]
+   [-3.26356435]]]
+
+
+ [[[-4.07541561]
+   [-3.32318878]
+   [-3.15619516]]
+
+  [[-3.57410288]
+   [-3.19134712]
+   [-3.40616894]]
+
+  [[-4.07211304]
+   [-3.26377678]
+   [-4.02047729]]]
+
+
+ [[[-3.35227418]
+   [-3.63734484]
+   [-3.71044421]]
+
+  [[-3.81953669]
+   [-3.74134755]
+   [-3.64259195]]
+
+  [[-3.79656219]
+   [-3.56571054]
+   [-3.376513  ]]]]
+estimates:
+ [[[[-48.76731491]
+   [-47.40507889]
+   [-47.40507889]
+   [-49.22399139]
+   [-49.22399139]
+   [-50.96633911]]
+
+  [[-48.76731491]
+   [-47.40507889]
+   [-47.40507889]
+   [-49.22399139]
+   [-49.01311874]
+   [-49.01311874]]
+
+  [[-41.84950256]
+   [-41.84950256]
+   [-44.33797455]
+   [-43.27046967]
+   [-39.58993912]
+   [-39.58993912]]
+
+  [[-39.58473206]
+   [-39.58473206]
+   [-44.33797455]
+   [-43.27046967]
+   [-39.58993912]
+   [-39.58993912]]
+
+  [[-39.58473206]
+   [-39.58473206]
+   [-45.98834229]
+   [-45.98834229]
+   [-45.92450714]
+   [-45.92450714]]
+
+  [[-48.86032486]
+   [-48.86032486]
+   [-47.80799484]
+   [-47.08811569]
+   [-47.08811569]
+   [-49.69272232]]]
+
+
+ [[[-46.07717133]
+   [-46.07717133]
+   [-48.25721359]
+   [-46.12242508]
+   [-46.12242508]
+   [-49.10184479]]
+
+  [[-44.85592651]
+   [-44.85592651]
+   [-48.25721359]
+   [-46.12242508]
+   [-46.12242508]
+   [-49.10184479]]
+
+  [[-44.85592651]
+   [-44.85592651]
+   [-54.21197128]
+   [-53.5704422 ]
+   [-53.5704422 ]
+   [-56.58454132]]
+
+  [[-39.62155914]
+   [-39.62155914]
+   [-52.40578842]
+   [-58.41616058]
+   [-58.41616058]
+   [-59.20666504]]
+
+  [[-39.62155914]
+   [-39.62155914]
+   [-52.40578842]
+   [-52.6510582 ]
+   [-51.55037689]
+   [-51.55037689]]
+
+  [[-48.51652527]
+   [-48.51652527]
+   [-52.7443161 ]
+   [-52.6510582 ]
+   [-51.55037689]
+   [-51.55037689]]]]
+
+-----------------------------
+iter=2,  loss=2352.094482
+weights:
+ [[[[ 20.97138596]
+   [ 20.47780418]
+   [ 16.0477066 ]]
+
+  [[ 22.89663315]
+   [ 21.88380814]
+   [ 18.75418472]]
+
+  [[ 22.06383133]
+   [ 18.34065628]
+   [ 19.70176888]]]
+
+
+ [[[ 20.7720871 ]
+   [ 20.48417473]
+   [ 18.23957634]]
+
+  [[ 24.41511726]
+   [ 22.17461586]
+   [ 22.17404556]]
+
+  [[ 20.96696663]
+   [ 18.43763351]
+   [ 23.17808914]]]
+
+
+ [[[ 20.21505547]
+   [ 18.97387123]
+   [ 18.63588905]]
+
+  [[ 22.61266136]
+   [ 22.1513176 ]
+   [ 23.45166397]]
+
+  [[ 22.25775909]
+   [ 21.93659973]
+   [ 20.58738327]]]]
+estimates:
+ [[[[ 287.1138916 ]
+   [ 287.1138916 ]
+   [ 300.80502319]
+   [ 300.80502319]
+   [ 301.20352173]
+   [ 301.20352173]]
+
+  [[ 301.63751221]
+   [ 307.66204834]
+   [ 318.46307373]
+   [ 318.46307373]
+   [ 318.39639282]
+   [ 301.20352173]]
+
+  [[ 301.63751221]
+   [ 307.66204834]
+   [ 318.46307373]
+   [ 318.46307373]
+   [ 318.39639282]
+   [ 290.41781616]]
+
+  [[ 255.68640137]
+   [ 274.44406128]
+   [ 276.24047852]
+   [ 290.95962524]
+   [ 290.95962524]
+   [ 271.25872803]]
+
+  [[ 291.39932251]
+   [ 305.75650024]
+   [ 305.75650024]
+   [ 290.95962524]
+   [ 294.15603638]
+   [ 294.15603638]]
+
+  [[ 291.39932251]
+   [ 305.75650024]
+   [ 305.75650024]
+   [ 284.45031738]
+   [ 294.15603638]
+   [ 294.15603638]]]
+
+
+ [[[ 277.26721191]
+   [ 286.86245728]
+   [ 286.86245728]
+   [ 280.21679688]
+   [ 290.01361084]
+   [ 290.01361084]]
+
+  [[ 277.26721191]
+   [ 321.01837158]
+   [ 321.01837158]
+   [ 319.8972168 ]
+   [ 337.52786255]
+   [ 337.52786255]]
+
+  [[ 272.71160889]
+   [ 321.01837158]
+   [ 321.01837158]
+   [ 319.8972168 ]
+   [ 337.52786255]
+   [ 337.52786255]]
+
+  [[ 240.46069336]
+   [ 312.67251587]
+   [ 312.67251587]
+   [ 351.14337158]
+   [ 355.04431152]
+   [ 355.04431152]]
+
+  [[ 287.58547974]
+   [ 314.74688721]
+   [ 314.74688721]
+   [ 351.14337158]
+   [ 355.04431152]
+   [ 355.04431152]]
+
+  [[ 287.58547974]
+   [ 314.74688721]
+   [ 314.74688721]
+   [ 317.93405151]
+   [ 317.93405151]
+   [ 308.815979  ]]]]
+
+-----------------------------
+iter=3,  loss=93456.328125
+weights:
+ [[[[-147.15501404]
+   [-134.32710266]
+   [-121.12914276]]
+
+  [[-146.66674805]
+   [-128.14900208]
+   [-135.7520752 ]]
+
+  [[-166.4981842 ]
+   [-137.26741028]
+   [-136.71676636]]]
+
+
+ [[[-157.03326416]
+   [-141.99674988]
+   [-135.02180481]]
+
+  [[-147.52531433]
+   [-129.69992065]
+   [-141.95135498]]
+
+  [[-178.92799377]
+   [-124.34162903]
+   [-146.71083069]]]
+
+
+ [[[-145.11767578]
+   [-150.79508972]
+   [-161.07666016]]
+
+  [[-154.22050476]
+   [-162.81568909]
+   [-151.40249634]]
+
+  [[-140.10046387]
+   [-145.47662354]
+   [-150.665802  ]]]]
+estimates:
+ [[[[-2020.76513672]
+   [-1957.67773438]
+   [-1957.67773438]
+   [-2035.24450684]
+   [-2035.24450684]
+   [-2124.75073242]]
+
+  [[-2020.76513672]
+   [-1957.67773438]
+   [-1957.67773438]
+   [-2035.24450684]
+   [-2033.88208008]
+   [-2033.88208008]]
+
+  [[-1744.48339844]
+   [-1744.48339844]
+   [-1853.03381348]
+   [-1810.10791016]
+   [-1643.88415527]
+   [-1643.88415527]]
+
+  [[-1638.06738281]
+   [-1638.06738281]
+   [-1853.03381348]
+   [-1810.10791016]
+   [-1643.88415527]
+   [-1643.88415527]]
+
+  [[-1638.06738281]
+   [-1638.06738281]
+   [-1926.57666016]
+   [-1926.57666016]
+   [-1910.58898926]
+   [-1910.58898926]]
+
+  [[-2036.7545166 ]
+   [-2036.7545166 ]
+   [-1984.92358398]
+   [-1930.26745605]
+   [-1930.26745605]
+   [-2054.21142578]]]
+
+
+ [[[-1894.4354248 ]
+   [-1894.4354248 ]
+   [-2009.38793945]
+   [-1918.09313965]
+   [-1918.09313965]
+   [-2022.99536133]]
+
+  [[-1864.39648438]
+   [-1864.39648438]
+   [-2009.38793945]
+   [-1918.09313965]
+   [-1918.09313965]
+   [-2022.99536133]]
+
+  [[-1864.39648438]
+   [-1864.39648438]
+   [-2262.73657227]
+   [-2224.29101562]
+   [-2224.29101562]
+   [-2344.04125977]]
+
+  [[-1664.27746582]
+   [-1664.27746582]
+   [-2155.23120117]
+   [-2403.84375   ]
+   [-2403.84375   ]
+   [-2483.48364258]]
+
+  [[-1664.27746582]
+   [-1664.27746582]
+   [-2155.23120117]
+   [-2200.11328125]
+   [-2151.08032227]
+   [-2151.08032227]]
+
+  [[-2017.73498535]
+   [-2017.73498535]
+   [-2225.30444336]
+   [-2200.11328125]
+   [-2151.08032227]
+   [-2151.08032227]]]]
+
+-----------------------------
+iter=4,  loss=3897525.500000
+weights:
+ [[[[ 848.19793701]
+   [ 828.425354  ]
+   [ 645.59020996]]
+
+  [[ 929.99060059]
+   [ 885.3034668 ]
+   [ 757.03942871]]
+
+  [[ 893.36816406]
+   [ 737.66015625]
+   [ 797.44042969]]]
+
+
+ [[[ 853.21429443]
+   [ 826.31329346]
+   [ 736.3269043 ]]
+
+  [[ 991.64117432]
+   [ 902.8807373 ]
+   [ 899.19024658]]
+
+  [[ 841.5534668 ]
+   [ 758.92205811]
+   [ 958.59411621]]]
+
+
+ [[[ 814.44042969]
+   [ 769.59527588]
+   [ 748.87420654]]
+
+  [[ 921.1194458 ]
+   [ 892.10229492]
+   [ 951.12231445]]
+
+  [[ 917.97924805]
+   [ 893.03607178]
+   [ 825.27807617]]]]
+estimates:
+ [[[[ 11649.44238281]
+   [ 11649.44238281]
+   [ 12205.38574219]
+   [ 12205.38574219]
+   [ 12212.01660156]
+   [ 12212.01660156]]
+
+  [[ 12227.97558594]
+   [ 12470.24023438]
+   [ 12914.65917969]
+   [ 12914.65917969]
+   [ 12913.48242188]
+   [ 12212.01660156]]
+
+  [[ 12227.97558594]
+   [ 12470.24023438]
+   [ 12914.65917969]
+   [ 12914.65917969]
+   [ 12913.48242188]
+   [ 11783.62695312]]
+
+  [[ 10367.34375   ]
+   [ 11146.29394531]
+   [ 11192.06054688]
+   [ 11782.05957031]
+   [ 11782.05957031]
+   [ 11000.49511719]]
+
+  [[ 11814.67773438]
+   [ 12395.90429688]
+   [ 12395.90429688]
+   [ 11782.05957031]
+   [ 11941.39941406]
+   [ 11941.39941406]]
+
+  [[ 11814.67773438]
+   [ 12395.90429688]
+   [ 12395.90429688]
+   [ 11539.76074219]
+   [ 11941.39941406]
+   [ 11941.39941406]]]
+
+
+ [[[ 11264.92773438]
+   [ 11632.67871094]
+   [ 11632.67871094]
+   [ 11365.45703125]
+   [ 11779.81542969]
+   [ 11779.81542969]]
+
+  [[ 11264.92773438]
+   [ 13013.69824219]
+   [ 13013.69824219]
+   [ 12977.93164062]
+   [ 13696.63671875]
+   [ 13696.63671875]]
+
+  [[ 11062.06152344]
+   [ 13013.69824219]
+   [ 13013.69824219]
+   [ 12977.93164062]
+   [ 13696.63671875]
+   [ 13696.63671875]]
+
+  [[  9740.67578125]
+   [ 12703.36914062]
+   [ 12703.36914062]
+   [ 14264.72167969]
+   [ 14382.00292969]
+   [ 14382.00292969]]
+
+  [[ 11664.984375  ]
+   [ 12736.52929688]
+   [ 12736.52929688]
+   [ 14264.72167969]
+   [ 14382.00292969]
+   [ 14382.00292969]]
+
+  [[ 11664.984375  ]
+   [ 12736.52929688]
+   [ 12736.52929688]
+   [ 12887.015625  ]
+   [ 12887.015625  ]
+   [ 12520.98632812]]]]
+
+-----------------------------
+iter=5,  loss=154672992.000000
+weights:
+ [[[[-5991.21484375]
+   [-5467.86181641]
+   [-4933.92578125]]
+
+  [[-5967.22509766]
+   [-5217.38574219]
+   [-5527.54345703]]
+
+  [[-6777.54541016]
+   [-5593.39208984]
+   [-5565.79785156]]]
+
+
+ [[[-6382.08203125]
+   [-5783.22363281]
+   [-5498.73339844]]
+
+  [[-6003.57373047]
+   [-5277.28759766]
+   [-5777.73535156]]
+
+  [[-7289.68457031]
+   [-5049.69628906]
+   [-5955.0703125 ]]]
+
+
+ [[[-5910.25439453]
+   [-6136.80273438]
+   [-6561.30615234]]
+
+  [[-6273.0546875 ]
+   [-6633.25097656]
+   [-6162.37304688]]
+
+  [[-5690.19433594]
+   [-5917.20751953]
+   [-6140.57421875]]]]
+estimates:
+ [[[[ -82241.734375 ]
+   [ -79665.6328125]
+   [ -79665.6328125]
+   [ -82823.4296875]
+   [ -82823.4296875]
+   [ -86479.265625 ]]
+
+  [[ -82241.734375 ]
+   [ -79665.6328125]
+   [ -79665.6328125]
+   [ -82823.4296875]
+   [ -82773.828125 ]
+   [ -82773.828125 ]]
+
+  [[ -71002.671875 ]
+   [ -71002.671875 ]
+   [ -75423.0703125]
+   [ -73679.9609375]
+   [ -66904.6171875]
+   [ -66904.6171875]]
+
+  [[ -66662.0703125]
+   [ -66662.0703125]
+   [ -75423.0703125]
+   [ -73679.9609375]
+   [ -66904.6171875]
+   [ -66904.6171875]]
+
+  [[ -66662.0703125]
+   [ -66662.0703125]
+   [ -78422.0234375]
+   [ -78422.0234375]
+   [ -77760.375    ]
+   [ -77760.375    ]]
+
+  [[ -82898.671875 ]
+   [ -82898.671875 ]
+   [ -80783.2109375]
+   [ -78538.296875 ]
+   [ -78538.296875 ]
+   [ -83598.125    ]]]
+
+
+ [[[ -77088.34375  ]
+   [ -77088.34375  ]
+   [ -81783.       ]
+   [ -78064.5703125]
+   [ -78064.5703125]
+   [ -82321.0859375]]
+
+  [[ -75880.9296875]
+   [ -75880.9296875]
+   [ -81783.       ]
+   [ -78064.5703125]
+   [ -78064.5703125]
+   [ -82321.0859375]]
+
+  [[ -75880.9296875]
+   [ -75880.9296875]
+   [ -92095.8984375]
+   [ -90526.125    ]
+   [ -90526.125    ]
+   [ -95397.53125  ]]
+
+  [[ -67745.90625  ]
+   [ -67745.90625  ]
+   [ -87698.9140625]
+   [ -97817.3515625]
+   [ -97817.3515625]
+   [-101089.71875  ]]
+
+  [[ -67745.90625  ]
+   [ -67745.90625  ]
+   [ -87698.9140625]
+   [ -89550.       ]
+   [ -87551.5      ]
+   [ -87551.5      ]]
+
+  [[ -82120.7265625]
+   [ -82120.7265625]
+   [ -90592.375    ]
+   [ -89550.       ]
+   [ -87551.5      ]
+   [ -87551.5      ]]]]
+
+-----------------------------
+iter=6,  loss=6449425408.000000
+weights:
+ [[[[ 34498.640625  ]
+   [ 33695.95703125]
+   [ 26255.46679688]]
+
+  [[ 37829.5234375 ]
+   [ 36008.6328125 ]
+   [ 30791.01171875]]
+
+  [[ 36336.9375    ]
+   [ 29998.05664062]
+   [ 32434.        ]]]
+
+
+ [[[ 34712.58203125]
+   [ 33605.78125   ]
+   [ 29946.7890625 ]]
+
+  [[ 40335.87890625]
+   [ 36726.71875   ]
+   [ 36574.2421875 ]]
+
+  [[ 34223.04296875]
+   [ 30879.9609375 ]
+   [ 39005.8515625 ]]]
+
+
+ [[[ 33123.3046875 ]
+   [ 31303.44726562]
+   [ 30454.38867188]]
+
+  [[ 37469.88671875]
+   [ 36279.96484375]
+   [ 38686.5390625 ]]
+
+  [[ 37349.22265625]
+   [ 36328.24609375]
+   [ 33559.77734375]]]]
+estimates:
+ [[[[ 473841.59375]
+   [ 473841.59375]
+   [ 496455.59375]
+   [ 496455.59375]
+   [ 496720.75   ]
+   [ 496720.75   ]]
+
+  [[ 497368.8125 ]
+   [ 507221.78125]
+   [ 525300.5625 ]
+   [ 525300.5625 ]
+   [ 525256.0625 ]
+   [ 496720.75   ]]
+
+  [[ 497368.8125 ]
+   [ 507221.78125]
+   [ 525300.5625 ]
+   [ 525300.5625 ]
+   [ 525256.0625 ]
+   [ 479303.375  ]]
+
+  [[ 421689.375  ]
+   [ 453389.3125 ]
+   [ 455226.90625]
+   [ 479221.25   ]
+   [ 479221.25   ]
+   [ 447444.     ]]
+
+  [[ 480558.5625 ]
+   [ 504197.78125]
+   [ 504197.78125]
+   [ 479221.25   ]
+   [ 485722.75   ]
+   [ 485722.75   ]]
+
+  [[ 480558.5625 ]
+   [ 504197.78125]
+   [ 504197.78125]
+   [ 469381.5625 ]
+   [ 485722.75   ]
+   [ 485722.75   ]]]
+
+
+ [[[ 458213.9375 ]
+   [ 473157.34375]
+   [ 473157.34375]
+   [ 462290.84375]
+   [ 479156.84375]
+   [ 479156.84375]]
+
+  [[ 458213.9375 ]
+   [ 529329.125  ]
+   [ 529329.125  ]
+   [ 527878.6875 ]
+   [ 557113.125  ]
+   [ 557113.125  ]]
+
+  [[ 449948.71875]
+   [ 529329.125  ]
+   [ 529329.125  ]
+   [ 527878.6875 ]
+   [ 557113.125  ]
+   [ 557113.125  ]]
+
+  [[ 396193.84375]
+   [ 516726.21875]
+   [ 516726.21875]
+   [ 580234.125  ]
+   [ 584976.3125 ]
+   [ 584976.3125 ]]
+
+  [[ 474473.90625]
+   [ 518035.6875 ]
+   [ 518035.6875 ]
+   [ 580234.125  ]
+   [ 584976.3125 ]
+   [ 584976.3125 ]]
+
+  [[ 474473.90625]
+   [ 518035.6875 ]
+   [ 518035.6875 ]
+   [ 524174.375  ]
+   [ 524174.375  ]
+   [ 509289.15625]]]]
+
+-----------------------------
+iter=7,  loss=255937888256.000000
+weights:
+ [[[[-243715.109375]
+   [-222423.828125]
+   [-200707.546875]]
+
+  [[-242735.1875  ]
+   [-212236.03125 ]
+   [-224852.984375]]
+
+  [[-275700.84375 ]
+   [-227537.046875]
+   [-226409.828125]]]
+
+
+ [[[-259606.359375]
+   [-235256.84375 ]
+   [-223683.3125  ]]
+
+  [[-244215.96875 ]
+   [-214671.59375 ]
+   [-235029.84375 ]]
+
+  [[-296539.0625  ]
+   [-205403.53125 ]
+   [-242230.09375 ]]]
+
+
+ [[[-240423.125   ]
+   [-249635.234375]
+   [-266908.6875  ]]
+
+  [[-255175.296875]
+   [-269837.0625  ]
+   [-250676.5625  ]]
+
+  [[-231460.5     ]
+   [-240698.75    ]
+   [-249796.84375 ]]]]
+estimates:
+ [[[[-3345469.5 ]
+   [-3240667.75]
+   [-3240667.75]
+   [-3369121.5 ]
+   [-3369121.5 ]
+   [-3517847.  ]]
+
+  [[-3345469.5 ]
+   [-3240667.75]
+   [-3240667.75]
+   [-3369121.5 ]
+   [-3367109.25]
+   [-3367109.25]]
+
+  [[-2888283.25]
+   [-2888283.25]
+   [-3068098.75]
+   [-2997197.  ]
+   [-2721578.25]
+   [-2721578.25]]
+
+  [[-2711706.  ]
+   [-2711706.  ]
+   [-3068098.75]
+   [-2997197.  ]
+   [-2721578.25]
+   [-2721578.25]]
+
+  [[-2711706.  ]
+   [-2711706.  ]
+   [-3190098.5 ]
+   [-3190098.5 ]
+   [-3163173.75]
+   [-3163173.75]]
+
+  [[-3372194.75]
+   [-3372194.75]
+   [-3286136.25]
+   [-3194799.  ]
+   [-3194799.  ]
+   [-3400640.  ]]]
+
+
+ [[[-3135826.5 ]
+   [-3135826.5 ]
+   [-3326808.75]
+   [-3175546.5 ]
+   [-3175546.5 ]
+   [-3348686.25]]
+
+  [[-3086723.25]
+   [-3086723.25]
+   [-3326808.75]
+   [-3175546.5 ]
+   [-3175546.5 ]
+   [-3348686.25]]
+
+  [[-3086723.25]
+   [-3086723.25]
+   [-3746322.5 ]
+   [-3682464.5 ]
+   [-3682464.5 ]
+   [-3880625.5 ]]
+
+  [[-2755807.75]
+   [-2755807.75]
+   [-3567444.5 ]
+   [-3979048.5 ]
+   [-3979048.5 ]
+   [-4112184.25]]
+
+  [[-2755807.75]
+   [-2755807.75]
+   [-3567444.5 ]
+   [-3642760.75]
+   [-3561463.25]
+   [-3561463.25]]
+
+  [[-3340545.75]
+   [-3340545.75]
+   [-3685178.25]
+   [-3642760.75]
+   [-3561463.25]
+   [-3561463.25]]]]
+
+-----------------------------
+iter=8,  loss=10671845539840.000000
+weights:
+ [[[[ 1403330.   ]
+   [ 1370681.125]
+   [ 1068013.625]]
+
+  [[ 1538827.5  ]
+   [ 1464754.625]
+   [ 1252512.75 ]]
+
+  [[ 1478109.25 ]
+   [ 1220251.5  ]
+   [ 1319344.375]]]
+
+
+ [[[ 1412040.375]
+   [ 1367007.625]
+   [ 1218168.75 ]]
+
+  [[ 1640778.625]
+   [ 1493966.125]
+   [ 1487762.25 ]]
+
+  [[ 1392115.25 ]
+   [ 1256141.5  ]
+   [ 1586687.875]]]
+
+
+ [[[ 1347382.75 ]
+   [ 1273358.   ]
+   [ 1238814.5  ]]
+
+  [[ 1524198.5  ]
+   [ 1475785.75 ]
+   [ 1573686.   ]]
+
+  [[ 1519294.375]
+   [ 1477760.5  ]
+   [ 1365132.875]]]]
+estimates:
+ [[[[ 19274870.]
+   [ 19274870.]
+   [ 20194762.]
+   [ 20194762.]
+   [ 20205548.]
+   [ 20205548.]]
+
+  [[ 20231912.]
+   [ 20632704.]
+   [ 21368110.]
+   [ 21368110.]
+   [ 21366302.]
+   [ 20205548.]]
+
+  [[ 20231912.]
+   [ 20632704.]
+   [ 21368110.]
+   [ 21368110.]
+   [ 21366302.]
+   [ 19497050.]]
+
+  [[ 17153426.]
+   [ 18442928.]
+   [ 18517656.]
+   [ 19493694.]
+   [ 19493694.]
+   [ 18201070.]]
+
+  [[ 19548096.]
+   [ 20509694.]
+   [ 20509694.]
+   [ 19493694.]
+   [ 19758176.]
+   [ 19758176.]]
+
+  [[ 19548096.]
+   [ 20509694.]
+   [ 20509694.]
+   [ 19093448.]
+   [ 19758176.]
+   [ 19758176.]]]
+
+
+ [[[ 18639184.]
+   [ 19247034.]
+   [ 19247034.]
+   [ 18805012.]
+   [ 19491096.]
+   [ 19491096.]]
+
+  [[ 18639184.]
+   [ 21531988.]
+   [ 21531988.]
+   [ 21472984.]
+   [ 22662180.]
+   [ 22662180.]]
+
+  [[ 18302960.]
+   [ 21531988.]
+   [ 21531988.]
+   [ 21472984.]
+   [ 22662180.]
+   [ 22662180.]]
+
+  [[ 16116320.]
+   [ 21019340.]
+   [ 21019340.]
+   [ 23602710.]
+   [ 23795588.]
+   [ 23795588.]]
+
+  [[ 19300588.]
+   [ 21072576.]
+   [ 21072576.]
+   [ 23602710.]
+   [ 23795588.]
+   [ 23795588.]]
+
+  [[ 19300588.]
+   [ 21072576.]
+   [ 21072576.]
+   [ 21322298.]
+   [ 21322298.]
+   [ 20716804.]]]]
+
+-----------------------------
+iter=9,  loss=423499445305344.000000
+weights:
+ [[[[ -9913836. ]
+   [ -9047749. ]
+   [ -8164376.5]]
+
+  [[ -9873970. ]
+   [ -8633330. ]
+   [ -9146562. ]]
+
+  [[-11214951. ]
+   [ -9255750. ]
+   [ -9209894. ]]]
+
+
+ [[[-10560254. ]
+   [ -9569774. ]
+   [ -9098986. ]]
+
+  [[ -9934209. ]
+   [ -8732404. ]
+   [ -9560538. ]]
+
+  [[-12062610. ]
+   [ -8355388.5]
+   [ -9853416. ]]]
+
+
+ [[[ -9779928. ]
+   [-10154653. ]
+   [-10857310. ]]
+
+  [[-10380010. ]
+   [-10976430. ]
+   [-10197013. ]]
+
+  [[ -9415338. ]
+   [ -9791132. ]
+   [-10161234. ]]]]
+estimates:
+ [[[[ -1.36086896e+08]
+   [ -1.31823768e+08]
+   [ -1.31823768e+08]
+   [ -1.37049024e+08]
+   [ -1.37049024e+08]
+   [ -1.43098864e+08]]
+
+  [[ -1.36086896e+08]
+   [ -1.31823768e+08]
+   [ -1.31823768e+08]
+   [ -1.37049024e+08]
+   [ -1.36967184e+08]
+   [ -1.36967184e+08]]
+
+  [[ -1.17489488e+08]
+   [ -1.17489488e+08]
+   [ -1.24804024e+08]
+   [ -1.21919888e+08]
+   [ -1.10708280e+08]
+   [ -1.10708280e+08]]
+
+  [[ -1.10306688e+08]
+   [ -1.10306688e+08]
+   [ -1.24804024e+08]
+   [ -1.21919888e+08]
+   [ -1.10708280e+08]
+   [ -1.10708280e+08]]
+
+  [[ -1.10306688e+08]
+   [ -1.10306688e+08]
+   [ -1.29766728e+08]
+   [ -1.29766728e+08]
+   [ -1.28671504e+08]
+   [ -1.28671504e+08]]
+
+  [[ -1.37174016e+08]
+   [ -1.37174016e+08]
+   [ -1.33673360e+08]
+   [ -1.29957920e+08]
+   [ -1.29957920e+08]
+   [ -1.38331136e+08]]]
+
+
+ [[[ -1.27559016e+08]
+   [ -1.27559016e+08]
+   [ -1.35327840e+08]
+   [ -1.29174784e+08]
+   [ -1.29174784e+08]
+   [ -1.36217744e+08]]
+
+  [[ -1.25561624e+08]
+   [ -1.25561624e+08]
+   [ -1.35327840e+08]
+   [ -1.29174784e+08]
+   [ -1.29174784e+08]
+   [ -1.36217744e+08]]
+
+  [[ -1.25561624e+08]
+   [ -1.25561624e+08]
+   [ -1.52392784e+08]
+   [ -1.49795168e+08]
+   [ -1.49795168e+08]
+   [ -1.57855936e+08]]
+
+  [[ -1.12100664e+08]
+   [ -1.12100664e+08]
+   [ -1.45116384e+08]
+   [ -1.61859584e+08]
+   [ -1.61859584e+08]
+   [ -1.67275280e+08]]
+
+  [[ -1.12100664e+08]
+   [ -1.12100664e+08]
+   [ -1.45116384e+08]
+   [ -1.48180096e+08]
+   [ -1.44873072e+08]
+   [ -1.44873072e+08]]
+
+  [[ -1.35886624e+08]
+   [ -1.35886624e+08]
+   [ -1.49905568e+08]
+   [ -1.48180096e+08]
+   [ -1.44873072e+08]
+   [ -1.44873072e+08]]]]
+
+
+Process finished with exit code 0

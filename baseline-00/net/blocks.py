@@ -218,6 +218,30 @@ def avgpool(input, kernel_size=(1,1), stride=[1,1,1,1], padding='SAME', has_bias
     return pool
 
 
+def concat(input, axis=3, name='cat'):
+    cat = tf.concat(axis=axis, values=input, name=name)
+    return cat
+
+def flatten(input, name='flat'):
+    input_shape = input.get_shape().as_list()        # list: [None, 9, 2]
+    dim   = np.prod(input_shape[1:])                 # dim = prod(9,2) = 18
+    flat  = tf.reshape(input, [-1, dim], name=name)  # -1 means "all"
+    return flat
+
+def linear(input, num_hiddens=1,  has_bias=True, name='linear'):
+    input_shape = input.get_shape().as_list()
+    assert len(input_shape)==2
+
+    C = input_shape[1]
+    K = num_hiddens
+
+    w = tf.get_variable(name=name + '_weight', shape=[C,K], initializer=tf.truncated_normal_initializer(stddev=0.1))
+    dense = tf.matmul(input, w, name=name)
+    if has_bias:
+        b = tf.get_variable(name=name + '_bias', shape=[K], initializer=tf.constant_initializer(0.0))
+        dense = dense + b
+
+    return dense
 
 
 
@@ -285,3 +309,13 @@ def conv2d_relu(input, num_kernels=1, kernel_size=(1,1), stride=[1,1,1,1], paddi
         block = conv2d(input, num_kernels=num_kernels, kernel_size=kernel_size, stride=stride, padding=padding, has_bias=True)
         block = relu(block)
     return block
+
+def linear_bn_relu(input,  num_hiddens=1, name='conv'):
+    with tf.variable_scope(name) as scope:
+        block = linear(input, num_hiddens=num_hiddens, has_bias=False)
+        block = bn(block)
+        block = relu(block)
+    return block
+
+
+
