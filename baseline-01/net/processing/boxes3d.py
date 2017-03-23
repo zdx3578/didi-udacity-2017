@@ -112,9 +112,9 @@ def box3d_to_top_projections(boxes3d):
     return projections
 
 
-def draw_rgb_projections(image, projections, color=(255,255,255), thickness=2):
+def draw_rgb_projections(image, projections, color=(255,255,255), thickness=2, darker=0.7):
 
-    img = image.copy()
+    img = image.copy()*darker
     num=len(projections)
     for n in range(num):
         qs = projections[n]
@@ -132,25 +132,30 @@ def draw_rgb_projections(image, projections, color=(255,255,255), thickness=2):
     return img
 
 
-def draw_box3d_on_top(image, box3d,color=(255,255,255), thickness=1):
+def draw_box3d_on_top(image, boxes3d,color=(255,255,255), thickness=1, darken=0.7):
 
-    b   = box3d
-    x0 = b[0,0]
-    y0 = b[0,1]
-    x1 = b[1,0]
-    y1 = b[1,1]
-    x2 = b[2,0]
-    y2 = b[2,1]
-    x3 = b[3,0]
-    y3 = b[3,1]
-    u0,v0=lidar_to_top_coords(x0,y0)
-    u1,v1=lidar_to_top_coords(x1,y1)
-    u2,v2=lidar_to_top_coords(x2,y2)
-    u3,v3=lidar_to_top_coords(x3,y3)
-    cv2.line(image, (u0,v0), (u1,v1), color, thickness, cv2.LINE_AA)
-    cv2.line(image, (u1,v1), (u2,v2), color, thickness, cv2.LINE_AA)
-    cv2.line(image, (u2,v2), (u3,v3), color, thickness, cv2.LINE_AA)
-    cv2.line(image, (u3,v3), (u0,v0), color, thickness, cv2.LINE_AA)
+    img = image.copy()*darken
+    num =len(boxes3d)
+    for n in range(num):
+        b   = boxes3d[n]
+        x0 = b[0,0]
+        y0 = b[0,1]
+        x1 = b[1,0]
+        y1 = b[1,1]
+        x2 = b[2,0]
+        y2 = b[2,1]
+        x3 = b[3,0]
+        y3 = b[3,1]
+        u0,v0=lidar_to_top_coords(x0,y0)
+        u1,v1=lidar_to_top_coords(x1,y1)
+        u2,v2=lidar_to_top_coords(x2,y2)
+        u3,v3=lidar_to_top_coords(x3,y3)
+        cv2.line(img, (u0,v0), (u1,v1), color, thickness, cv2.LINE_AA)
+        cv2.line(img, (u1,v1), (u2,v2), color, thickness, cv2.LINE_AA)
+        cv2.line(img, (u2,v2), (u3,v3), color, thickness, cv2.LINE_AA)
+        cv2.line(img, (u3,v3), (u0,v0), color, thickness, cv2.LINE_AA)
+
+    return  img
 
 def draw_boxes(image, boxes, color=(0,255,255), thickness=1, darken=0.7):
 
@@ -165,22 +170,49 @@ def draw_boxes(image, boxes, color=(0,255,255), thickness=1, darken=0.7):
 
 ## regression -------------------------------------------------------
 ##<todo> refine this normalisation later ... e.g. use log(scale)
-def box3d_transform(et_boxes3d, gt_boxes3d):
+def box3d_transform0(et_boxes3d, gt_boxes3d):
 
     et_centers =   np.sum(et_boxes3d,axis=1, keepdims=True)/8
-    et_scales  =   np.sum((et_boxes3d-et_centers)**2, axis=2, keepdims=True)**0.5
-    deltas = (gt_boxes3d-et_centers)/et_scales
+    et_scales  =   10#*np.sum((et_boxes3d-et_centers)**2, axis=2, keepdims=True)**0.5
+    deltas = (et_boxes3d-gt_boxes3d)/et_scales
+    return deltas
+
+
+def box3d_transform_inv0(et_boxes3d, deltas):
+
+    et_centers =  np.sum(et_boxes3d,axis=1, keepdims=True)/8
+    et_scales  =  10#*np.sum((et_boxes3d-et_centers)**2, axis=2, keepdims=True)**0.5
+    boxes3d = -deltas*et_scales+et_boxes3d
+
+    return boxes3d
+
+def box3d_transform(et_boxes3d, gt_boxes3d):
+
+    num=len(et_boxes3d)
+    deltas=np.zeros((num,8,3),dtype=np.float32)
+    for n in range(num):
+        e=et_boxes3d[n]
+        center = np.sum(e,axis=0, keepdims=True)/8
+        scale = (np.sum((e-center)**2)/8)**0.5
+
+        g=gt_boxes3d[n]
+        deltas[n]= (g-e)/scale
     return deltas
 
 
 def box3d_transform_inv(et_boxes3d, deltas):
 
-    et_centers =  np.sum(et_boxes3d,axis=1, keepdims=True)/8
-    et_scales  =  np.sum((et_boxes3d-et_centers)**2, axis=2, keepdims=True)**0.5
-    boxes3d = deltas*et_scales+et_centers
+    num=len(et_boxes3d)
+    boxes3d=np.zeros((num,8,3),dtype=np.float32)
+    for n in range(num):
+        e=et_boxes3d[n]
+        center = np.sum(e,axis=0, keepdims=True)/8
+        scale = (np.sum((e-center)**2)/8)**0.5
+
+        d=deltas[n]
+        boxes3d[n]= e+scale*d
 
     return boxes3d
-
 
 
 ##<todo> refine this regularisation later

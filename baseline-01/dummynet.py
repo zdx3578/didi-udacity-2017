@@ -6,7 +6,7 @@ from net.roipooling_op import roi_pool as tf_roipooling
 
 
 # temporary net for debugging only. may not follow the paper exactly ....
-def top_lidar_feature_net(input, anchors, inds_inside, num_bases):
+def top_feature_net(input, anchors, inds_inside, num_bases):
 
 
     stride=1.
@@ -23,18 +23,21 @@ def top_lidar_feature_net(input, anchors, inds_inside, num_bases):
     with tf.variable_scope('top-block-2') as scope:
         block = conv2d_bn_relu(block, num_kernels=64, kernel_size=(3,3), stride=[1,1,1,1], padding='SAME', name='1')
         block = conv2d_bn_relu(block, num_kernels=64, kernel_size=(3,3), stride=[1,1,1,1], padding='SAME', name='2')
+        block = conv2d_bn_relu(block, num_kernels=64, kernel_size=(3,3), stride=[1,1,1,1], padding='SAME', name='3')
         block = maxpool(block, kernel_size=(2,2), stride=[1,2,2,1], padding='SAME', name='4' )
         stride *=2
 
     with tf.variable_scope('top-block-3') as scope:
         block = conv2d_bn_relu(block, num_kernels=128, kernel_size=(3,3), stride=[1,1,1,1], padding='SAME', name='1')
         block = conv2d_bn_relu(block, num_kernels=128, kernel_size=(3,3), stride=[1,1,1,1], padding='SAME', name='2')
+        block = conv2d_bn_relu(block, num_kernels=128, kernel_size=(3,3), stride=[1,1,1,1], padding='SAME', name='3')
         block = maxpool(block, kernel_size=(2,2), stride=[1,2,2,1], padding='SAME', name='4' )
         stride *=2
 
     with tf.variable_scope('top-block-4') as scope:
         block = conv2d_bn_relu(block, num_kernels=128, kernel_size=(3,3), stride=[1,1,1,1], padding='SAME', name='1')
         block = conv2d_bn_relu(block, num_kernels=128, kernel_size=(3,3), stride=[1,1,1,1], padding='SAME', name='2')
+        block = conv2d_bn_relu(block, num_kernels=128, kernel_size=(3,3), stride=[1,1,1,1], padding='SAME', name='3')
 
 
     with tf.variable_scope('top') as scope:
@@ -72,17 +75,20 @@ def rgb_feature_net(input):
     with tf.variable_scope('rgb-block-1') as scope:
         block = conv2d_bn_relu(input, num_kernels=32, kernel_size=(3,3), stride=[1,1,1,1], padding='SAME', name='1')
         block = conv2d_bn_relu(block, num_kernels=32, kernel_size=(3,3), stride=[1,1,1,1], padding='SAME', name='2')
+        block = conv2d_bn_relu(block, num_kernels=32, kernel_size=(3,3), stride=[1,1,1,1], padding='SAME', name='3')
         block = maxpool(block, kernel_size=(2,2), stride=[1,2,2,1], padding='SAME', name='4' )
         stride *=2
 
     with tf.variable_scope('rgb-block-2') as scope:
         block = conv2d_bn_relu(block, num_kernels=64, kernel_size=(3,3), stride=[1,1,1,1], padding='SAME', name='1')
         block = conv2d_bn_relu(block, num_kernels=64, kernel_size=(3,3), stride=[1,1,1,1], padding='SAME', name='2')
+        block = conv2d_bn_relu(block, num_kernels=64, kernel_size=(3,3), stride=[1,1,1,1], padding='SAME', name='3')
         block = maxpool(block, kernel_size=(2,2), stride=[1,2,2,1], padding='SAME', name='4' )
         stride *=2
 
     with tf.variable_scope('rgb-block-3') as scope:
         block = conv2d_bn_relu(block, num_kernels=128, kernel_size=(3,3), stride=[1,1,1,1], padding='SAME', name='1')
+        block = conv2d_bn_relu(block, num_kernels=128, kernel_size=(3,3), stride=[1,1,1,1], padding='SAME', name='2')
         block = conv2d_bn_relu(block, num_kernels=128, kernel_size=(3,3), stride=[1,1,1,1], padding='SAME', name='3')
         block = maxpool(block, kernel_size=(2,2), stride=[1,2,2,1], padding='SAME', name='4' )
         stride *=2
@@ -90,6 +96,7 @@ def rgb_feature_net(input):
     with tf.variable_scope('rgb-block-4') as scope:
         block = conv2d_bn_relu(block, num_kernels=128, kernel_size=(3,3), stride=[1,1,1,1], padding='SAME', name='1')
         block = conv2d_bn_relu(block, num_kernels=128, kernel_size=(3,3), stride=[1,1,1,1], padding='SAME', name='2')
+        block = conv2d_bn_relu(block, num_kernels=128, kernel_size=(3,3), stride=[1,1,1,1], padding='SAME', name='3')
 
 
     #<todo> feature = upsample2d(block, factor = 4,  ...)
@@ -129,8 +136,10 @@ def fusion_net(feature_list, num_class, out_shape=(8,3)):
                 input = concat([input,roi_features], axis=1, name='%d/cat'%n)
 
     with tf.variable_scope('fuse-block-1') as scope:
-        block = linear_bn_relu(input, num_hiddens=256, name='1')
-        block = linear_bn_relu(block, num_hiddens=256, name='2')
+        block = linear_bn_relu(input, num_hiddens=512, name='1')
+        block = linear_bn_relu(block, num_hiddens=512, name='2')
+        block = linear_bn_relu(input, num_hiddens=512, name='3')
+        block = linear_bn_relu(block, num_hiddens=512, name='4')
 
     #include background class
     with tf.variable_scope('fuse') as scope:

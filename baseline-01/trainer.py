@@ -41,6 +41,71 @@ def load_dummy_data():
 
 
 
+def load_dummy_datas():
+
+    num_frames = 154
+    rgbs      =[]
+    lidars    =[]
+    tops      =[]
+    fronts    =[]
+    gt_labels =[]
+    gt_boxes3d=[]
+
+    top_images  =[]
+    front_images=[]
+
+    fig = mlab.figure(figure=None, bgcolor=(0,0,0), fgcolor=None, engine=None, size=(1000, 500))
+    for n in range(num_frames):
+        print(n)
+
+        rgb   = cv2.imread('/root/share/project/didi/data/kitti/dummy/seg/rgb/rgb_%05d.png'%n,1)
+        lidar = np.load('/root/share/project/didi/data/kitti/dummy/seg/lidar/lidar_%05d.npy'%n)
+        top   = np.load('/root/share/project/didi/data/kitti/dummy/seg/top/top_%05d.npy'%n)
+        front = np.zeros((1,1),dtype=np.float32)
+        gt_label  = np.load('/root/share/project/didi/data/kitti/dummy/seg/gt_labels/gt_labels_%05d.npy'%n)
+        gt_box3d = np.load('/root/share/project/didi/data/kitti/dummy/seg/gt_boxes3d/gt_boxes3d_%05d.npy'%n)
+
+
+        top_image   = cv2.imread('/root/share/project/didi/data/kitti/dummy/seg/top_image/top_image_%05d.png'%n,1)
+        front_image = np.zeros((1,1,3),dtype=np.float32)
+
+        rgbs.append(rgb)
+        lidars.append(lidar)
+        tops.append(top)
+        fronts.append(front)
+        gt_labels.append(gt_label)
+        gt_boxes3d.append(gt_box3d)
+
+        top_images.append(top_image)
+        front_images.append(front_image)
+
+
+        # explore dataset:
+
+        print (gt_box3d)
+        if 0:
+            projections=box3d_to_rgb_projections(gt_box3d)
+            rgb1 = draw_rgb_projections(rgb, projections, color=(255,255,255), thickness=2)
+            top_image1 = draw_box3d_on_top(top_image, gt_box3d, color=(255,255,255), thickness=2)
+
+            imshow('rgb',rgb1)
+            imshow('top_image',top_image1)
+
+            mlab.clf(fig)
+            draw_lidar(lidar, fig=fig)
+            draw_gt_boxes3d(gt_box3d, fig=fig)
+            mlab.show(1)
+            cv2.waitKey(1)
+
+            pass
+
+
+    ##exit(0)
+    mlab.close(all=True)
+    return  rgbs, tops, fronts, gt_labels, gt_boxes3d, top_images, front_images, lidars
+
+
+
 #<todo>
 def project_to_roi3d(top_rois):
     num = len(top_rois)
@@ -79,7 +144,7 @@ def run_train():
     makedirs(out_dir +'/check_points')
     log = Logger(out_dir+'/log.txt',mode='a')
 
-    #one lidar data -----------------
+    #lidar data -----------------
     if 1:
         ratios=np.array([0.5,1,2], dtype=np.float32)
         scales=np.array([1,2,3],   dtype=np.float32)
@@ -91,21 +156,22 @@ def run_train():
         num_bases = len(bases)
         stride = 8
 
-        rgb, top, front, gt_labels, gt_boxes3d, top_image, front_image, lidar = load_dummy_data()
-        top_shape   = top.shape
-        front_shape = front.shape
-        rgb_shape   = rgb.shape
+        rgbs, tops, fronts, gt_labels, gt_boxes3d, top_imgs, front_imgs, lidars = load_dummy_datas()
+        num_frames = len(rgbs)
 
+        top_shape   = tops[0].shape
+        front_shape = fronts[0].shape
+        rgb_shape   = rgbs[0].shape
         top_feature_shape = (top_shape[0]//stride, top_shape[1]//stride)
         out_shape=(8,3)
 
 
         #-----------------------
         #check data
-        if 1:
+        if 0:
             fig = mlab.figure(figure=None, bgcolor=(0,0,0), fgcolor=None, engine=None, size=(1000, 500))
-            draw_lidar(lidar, fig=fig)
-            draw_gt_boxes3d(gt_boxes3d, fig=fig)
+            draw_lidar(lidars[0], fig=fig)
+            draw_gt_boxes3d(gt_boxes3d[0], fig=fig)
             mlab.show(1)
             cv2.waitKey(1)
 
@@ -116,6 +182,8 @@ def run_train():
     anchors, inside_inds =  make_anchors(bases, stride, top_shape[0:2], top_feature_shape[0:2])
     inside_inds = np.arange(0,len(anchors),dtype=np.int32)  #use all  #<todo>
     print ('out_shape=%s'%str(out_shape))
+    print ('num_frames=%d'%num_frames)
+
 
     #load model ####################################################################################################
     top_anchors     = tf.placeholder(shape=[None, 4], dtype=tf.int32,   name ='anchors'    )
@@ -129,7 +197,7 @@ def run_train():
     rgb_rois     = tf.placeholder(shape=[None, 5], dtype=tf.float32,   name ='rgb_rois'   )
 
     top_features, top_scores, top_probs, top_deltas, proposals, proposal_scores = \
-        top_lidar_feature_net(top_images, top_anchors, top_inside_inds, num_bases)
+        top_feature_net(top_images, top_anchors, top_inside_inds, num_bases)
 
     front_features = front_feature_net(front_images)
     rgb_features   = rgb_feature_net(rgb_images)
@@ -155,14 +223,15 @@ def run_train():
     fuse_cls_loss, fuse_reg_loss = rcnn_loss(fuse_scores, fuse_deltas, fuse_labels, fuse_targets)
 
 
-    #put your solver here
+    #solver
     l2 = l2_regulariser(decay=0.0005)
     learning_rate = tf.placeholder(tf.float32, shape=[])
     solver = tf.train.MomentumOptimizer(learning_rate=learning_rate, momentum=0.9)
     #solver_step = solver.minimize(top_cls_loss+top_reg_loss+l2)
-    solver_step = solver.minimize(top_cls_loss+top_reg_loss+fuse_cls_loss+fuse_reg_loss+l2)
+    solver_step = solver.minimize(top_cls_loss+top_reg_loss+fuse_cls_loss+0.1*fuse_reg_loss+l2)
 
     max_iter = 10000
+    iter_debug=8
 
     # start training here  #########################################################################################
     log.write('epoch     iter    rate   |  top_cls_loss   reg_loss   |  fuse_cls_loss  reg_loss  |  \n')
@@ -184,16 +253,18 @@ def run_train():
         batch_fuse_reg_loss=0
         for iter in range(max_iter):
             epoch=1.0*iter
-            rate=0.1
+            rate=0.05
+
 
             ## generate train image -------------
-            batch_top_images    = top.reshape(1,*top_shape)
-            batch_front_images  = front.reshape(1,*front_shape)
-            batch_rgb_images    = rgb.reshape(1,*rgb_shape)
+            idx = np.random.choice(num_frames)     #*10   #num_frames)  #0
+            batch_top_images    = tops[idx].reshape(1,*top_shape)
+            batch_front_images  = fronts[idx].reshape(1,*front_shape)
+            batch_rgb_images    = rgbs[idx].reshape(1,*rgb_shape)
 
-            batch_gt_labels    = gt_labels
-            batch_gt_boxes3d   = gt_boxes3d
-            batch_gt_top_boxes = box3d_to_top_box(gt_boxes3d)
+            batch_gt_labels    = gt_labels[idx]
+            batch_gt_boxes3d   = gt_boxes3d[idx]
+            batch_gt_top_boxes = box3d_to_top_box(batch_gt_boxes3d)
 
 
 			## run propsal generation ------------
@@ -220,21 +291,24 @@ def run_train():
 
 
             ##debug gt generation
-            if 1:
+            if 1 and iter%iter_debug==0:
+                top_image = top_imgs[idx]
+                rgb       = rgbs[idx]
+
                 img_gt     = draw_rpn_gt(top_image, batch_gt_top_boxes, batch_gt_labels)
                 img_label  = draw_rpn_labels (top_image, anchors, batch_top_inds, batch_top_labels )
                 img_target = draw_rpn_targets(top_image, anchors, batch_top_pos_inds, batch_top_targets)
-                imshow('img_rpn_gt',img_gt)
-                imshow('img_rpn_label',img_label)
-                imshow('img_rpn_target',img_target)
+                #imshow('img_rpn_gt',img_gt)
+                #imshow('img_rpn_label',img_label)
+                #imshow('img_rpn_target',img_target)
 
                 img_label  = draw_rcnn_labels (top_image, batch_top_rois, batch_fuse_labels )
                 img_target = draw_rcnn_targets(top_image, batch_top_rois, batch_fuse_labels, batch_fuse_targets)
-                imshow('img_rcnn_label',img_label)
+                #imshow('img_rcnn_label',img_label)
                 imshow('img_rcnn_target',img_target)
 
 
-                img_rgb_rois = draw_boxes(rgb, batch_rgb_rois[:,1:5], thickness=1)
+                img_rgb_rois = draw_boxes(rgb, batch_rgb_rois[:,1:5], color=(255,0,255), thickness=1)
                 imshow('img_rgb_rois',img_rgb_rois)
 
                 cv2.waitKey(1)
@@ -273,14 +347,18 @@ def run_train():
             #print('ok')
             # debug: ------------------------------------
 
-            if iter%4==0:
+            if iter%iter_debug==0:
+                top_image = top_imgs[idx]
+                rgb       = rgbs[idx]
+
                 batch_top_probs, batch_top_scores, batch_top_deltas  = \
                     sess.run([ top_probs, top_scores, top_deltas ],fd2)
 
                 batch_fuse_probs, batch_fuse_deltas = \
                     sess.run([ fuse_probs, fuse_deltas ],fd2)
 
-                probs, boxes3d = rcnn_nms(batch_fuse_probs, batch_fuse_deltas, batch_rois3d)
+                #batch_fuse_deltas=0*batch_fuse_deltas #disable 3d box prediction
+                probs, boxes3d = rcnn_nms(batch_fuse_probs, batch_fuse_deltas, batch_rois3d, threshold=0.5)
 
 
                 ## show rpn score maps
@@ -296,12 +374,12 @@ def run_train():
 				## show rpn(top) nms
                 img_rpn     = draw_rpn    (top_image, batch_top_probs, batch_top_deltas, anchors, inside_inds)
                 img_rpn_nms = draw_rpn_nms(top_image, batch_proposals, batch_proposal_scores)
-                imshow('img_rpn',img_rpn)
+                #imshow('img_rpn',img_rpn)
                 imshow('img_rpn_nms',img_rpn_nms)
                 cv2.waitKey(1)
 
                 ## show rcnn(fuse) nms
-                img_rcnn     = draw_rcnn (top_image, batch_fuse_probs, batch_fuse_deltas, batch_top_rois, batch_rois3d)
+                img_rcnn     = draw_rcnn (top_image, batch_fuse_probs, batch_fuse_deltas, batch_top_rois, batch_rois3d,darker=1)
                 img_rcnn_nms = draw_rcnn_nms(rgb, boxes3d, probs)
                 imshow('img_rcnn',img_rcnn)
                 imshow('img_rcnn_nms',img_rcnn_nms)

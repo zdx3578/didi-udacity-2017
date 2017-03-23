@@ -31,8 +31,7 @@ def draw_rcnn(image, probs,  deltas, rois, rois3d, threshold=0.8, darker=0.7):
     if deltas.shape[1:]==(8,3):
         boxes3d  = box3d_transform_inv(rois3d, deltas)
         boxes3d  = regularise_box3d(boxes3d)
-        for n in range(num):
-            draw_box3d_on_top(img_rcnn,boxes3d[n])
+        img_rcnn = draw_box3d_on_top(img_rcnn,boxes3d)
 
     return img_rcnn
 
@@ -53,9 +52,9 @@ def draw_rcnn_nms(rgb, boxes3d, probs, darker=0.7):
 ## <todo> to be updated
 
 
-def rcnn_nms( probs,  deltas,  rois3d ):
+def rcnn_nms( probs,  deltas,  rois3d,  threshold = 0.75):
 
-    threshold = 0.75
+
     cls=1  # do for class-one only
     probs = probs[:,cls] #see only class-1
     idx = np.where(probs>0.8)[0]

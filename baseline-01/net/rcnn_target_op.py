@@ -120,8 +120,8 @@ def draw_rcnn_targets(image, rois, labels,  targets, darker=0.7):
             t = targets[n]
             a3d = top_box_to_box3d(a.reshape(1,4))
             b3d = box3d_transform_inv(a3d, t.reshape(1,8,3))
-            b3d = b3d.reshape(8,3)
-            draw_box3d_on_top(img_target, b3d)
+            #b3d = b3d.reshape(1,8,3)
+            img_target = draw_box3d_on_top(img_target, b3d, darken=1)
 
     return img_target
 
