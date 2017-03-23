@@ -1,5 +1,6 @@
 # didi-udacity-2017
 Competition entry for didi-udacity 2017 challenge for autonomous driving
+you can follow the development process at: [https://medium.com/@hengcherkeng/part-1-didi-udacity-challenge-2017-car-and-pedestrian-detection-using-lidar-and-rgb-fff616fc63e8#.x9mavqle3](https://medium.com/@hengcherkeng/part-1-didi-udacity-challenge-2017-car-and-pedestrian-detection-using-lidar-and-rgb-fff616fc63e8#.x9mavqle3)
 <br><br>
 
 ![](docs/plan.png) 
@@ -13,5 +14,8 @@ Competition entry for didi-udacity 2017 challenge for autonomous driving
 	[delivery] : initial code + demo video
 
 
-This is expected results (image taken from from [http://3dimage.ee.tsinghua.edu.cn/cxz](http://3dimage.ee.tsinghua.edu.cn/cxz))
-![](docs/video.png) 
+This is results on training (not testing) 
+
+[![](https://img.youtube.com/vi/vfePJaIhjmU/0.jpg)](https://www.youtube.com/watch?v=vfePJaIhjmU)
+
+ 
