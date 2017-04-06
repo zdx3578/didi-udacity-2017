@@ -20,17 +20,18 @@ from net.rcnn_target_op import draw_rcnn_targets, draw_rcnn_labels
 
 #http://3dimage.ee.tsinghua.edu.cn/cxz
 # "Multi-View 3D Object Detection Network for Autonomous Driving" - Xiaozhi Chen, CVPR 2017
+path=??
 
 def load_dummy_data():
-    rgb   = np.load('/root/share/project/didi/data/kitti/dummy/one_frame/rgb.npy')
-    lidar = np.load('/root/share/project/didi/data/kitti/dummy/one_frame/lidar.npy')
-    top   = np.load('/root/share/project/didi/data/kitti/dummy/one_frame/top.npy')
+    rgb   = np.load(path+'/one_frame/rgb.npy')
+    lidar = np.load(path+'/one_frame/lidar.npy')
+    top   = np.load(path+'/one_frame/top.npy')
     front = np.zeros((1,1),dtype=np.float32)
-    gt_labels    = np.load('/root/share/project/didi/data/kitti/dummy/one_frame/gt_labels.npy')
-    gt_boxes3d   = np.load('/root/share/project/didi/data/kitti/dummy/one_frame/gt_boxes3d.npy')
-    gt_top_boxes = np.load('/root/share/project/didi/data/kitti/dummy/one_frame/gt_top_boxes.npy')
+    gt_labels    = np.load(path+'/one_frame/gt_labels.npy')
+    gt_boxes3d   = np.load(path+'/one_frame/gt_boxes3d.npy')
+    gt_top_boxes = np.load(path+'/one_frame/gt_top_boxes.npy')
 
-    top_image   = cv2.imread('/root/share/project/didi/data/kitti/dummy/one_frame/top_image.png')
+    top_image   = cv2.imread(path+'/one_frame/top_image.png')
     front_image = np.zeros((1,1,3),dtype=np.float32)
 
     rgb =(rgb*255).astype(np.uint8)
@@ -156,7 +157,7 @@ def run_train():
         num_bases = len(bases)
         stride = 8
 
-        rgbs, tops, fronts, gt_labels, gt_boxes3d, top_imgs, front_imgs, lidars = load_dummy_datas()
+        rgbs, tops, fronts, gt_labels, gt_boxes3d, top_imgs, front_imgs, lidars = load_dummy_data()
         num_frames = len(rgbs)
 
         top_shape   = tops[0].shape
