@@ -21,17 +21,17 @@ from net.rcnn_target_op import draw_rcnn_targets, draw_rcnn_labels, draw_rcnn
 
 #http://3dimage.ee.tsinghua.edu.cn/cxz
 # "Multi-View 3D Object Detection Network for Autonomous Driving" - Xiaozhi Chen, CVPR 2017
-
+path='/home/ubuntu/didi-udacity-2017/data'
 
 def load_dummy_data():
-    rgb   = np.load('/root/share/project/didi/data/kitti/dummy/one_frame/rgb.npy')
-    lidar = np.load('/root/share/project/didi/data/kitti/dummy/one_frame/lidar.npy')
-    top   = np.load('/root/share/project/didi/data/kitti/dummy/one_frame/top.npy')
-    gt_labels    = np.load('/root/share/project/didi/data/kitti/dummy/one_frame/gt_labels.npy')
-    gt_boxes3d   = np.load('/root/share/project/didi/data/kitti/dummy/one_frame/gt_boxes3d.npy')
-    gt_top_boxes = np.load('/root/share/project/didi/data/kitti/dummy/one_frame/gt_top_boxes.npy')
+    rgb   = np.load(path+'/one_frame/rgb.npy')
+    lidar = np.load(path+'/one_frame/lidar.npy')
+    top   = np.load(path+'/one_frame/top.npy')
+    gt_labels    = np.load(path+'/one_frame/gt_labels.npy')
+    gt_boxes3d   = np.load(path+'/one_frame/gt_boxes3d.npy')
+    gt_top_boxes = np.load(path+'/one_frame/gt_top_boxes.npy')
 
-    top_image = cv2.imread('/root/share/project/didi/data/kitti/dummy/one_frame/top_image.png')
+    top_image = cv2.imread(path+'/one_frame/top_image.png')
     rgb =(rgb*255).astype(np.uint8)
     rgb = cv2.cvtColor(rgb, cv2.COLOR_RGB2BGR)
 
@@ -74,7 +74,7 @@ def load_dummy_data1():
 def run_train():
 
     # output dir, etc
-    out_dir = '/root/share/out/didi/xxx'
+    out_dir = '/tmp/root/share/out/didi/xxx'
     makedirs(out_dir +'/tf')
     log = Logger(out_dir+'/log.txt',mode='a')
 

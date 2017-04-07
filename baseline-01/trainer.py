@@ -20,7 +20,7 @@ from net.rcnn_target_op import draw_rcnn_targets, draw_rcnn_labels
 
 #http://3dimage.ee.tsinghua.edu.cn/cxz
 # "Multi-View 3D Object Detection Network for Autonomous Driving" - Xiaozhi Chen, CVPR 2017
-path=??
+path='/home/ubuntu/didi-udacity-2017/data'
 
 def load_dummy_data():
     rgb   = np.load(path+'/one_frame/rgb.npy')
@@ -140,7 +140,7 @@ def  project_to_front_roi(rois3d):
 def run_train():
 
     # output dir, etc
-    out_dir = '/root/share/out/didi/xxx'
+    out_dir = '/tmp/root/share/out/didi/xxx'
     makedirs(out_dir +'/tf')
     makedirs(out_dir +'/check_points')
     log = Logger(out_dir+'/log.txt',mode='a')
