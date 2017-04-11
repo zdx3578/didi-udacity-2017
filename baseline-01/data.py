@@ -206,11 +206,87 @@ def draw_gt_boxes3d(gt_boxes3d, fig, color=(1,1,1), line_width=2):
     mlab.view(azimuth=180,elevation=None,distance=50,focalpoint=[ 12.0909996 , -1.04700089, -2.03249991])#2.0909996 , -1.04700089, -2.03249991
 
 
+
+
+def obj_to_gt(objs):
+
+    num         = len(objs)
+    gt_boxes   = np.zeros((num,4),  dtype=np.float32)
+    gt_boxes3d = np.zeros((num,8,3),dtype=np.float32)
+    gt_labels   = np.zeros((num),    dtype=np.int32)
+
+    for n in range(num):
+        obj = objs[n]
+        b   = obj.box
+        label = 1 #<todo>
+
+        x0 = b[0,0]
+        y0 = b[0,1]
+        x1 = b[1,0]
+        y1 = b[1,1]
+        x2 = b[2,0]
+        y2 = b[2,1]
+        x3 = b[3,0]
+        y3 = b[3,1]
+        u0,v0=lidar_to_top_coords(x0,y0)
+        u1,v1=lidar_to_top_coords(x1,y1)
+        u2,v2=lidar_to_top_coords(x2,y2)
+        u3,v3=lidar_to_top_coords(x3,y3)
+
+        umin=min(u0,u1,u2,u3)
+        umax=max(u0,u1,u2,u3)
+        vmin=min(v0,v1,v2,v3)
+        vmax=max(v0,v1,v2,v3)
+
+        gt_labels[n]=label
+        gt_boxes[n]=np.array([umin,vmin,umax,vmax])
+        gt_boxes3d[n]=b
+
+    return gt_labels, gt_boxes, gt_boxes3d
+
+
+
+def box_to_box3d(boxes):
+
+    num=len(boxes)
+
+    boxes3d = np.zeros((num,8,3),dtype=np.float32)
+    for n in range(num):
+        x1,y1,x2,y2 = boxes[n]
+
+        points = [ (x1,y1), (x1,y2), (x2,y2), (x2,y1) ]
+        for k in range(4):
+            xx,yy = points[k]
+            x,y = top_to_lidar_coords(xx,yy)
+            boxes3d[n,k,  :] = x,y,0.4
+            boxes3d[n,4+k,:] = x,y,-2
+
+    return boxes3d
+
+def make_projected_box3d(box3d, Mt=None, Kt=None):
+
+    if Mt is None: Mt = MATRIX_Mt
+    if Kt is None: Kt = MATRIX_Kt
+
+    Ps = np.hstack(( box3d, np.ones((8,1))) )
+    Qs = np.matmul(Ps,Mt)
+    Qs = Qs[:,0:3]
+    qs = np.matmul(Qs,Kt)
+    zs = qs[:,2].reshape(8,1)
+    qs = (qs/zs).astype(np.int32)
+
+    return qs
+
+
+
+
+path = '/media/lenovo/e/BaiduNetdiskDownload/2011_09_26_drive_0005_extract'
+
 # main #################################################################33
 if __name__ == '__main__':
     print( '%s: calling main function ... ' % os.path.basename(__file__))
 
-    basedir = '/root/share/project/didi/data/kitti/dummy'
+    basedir = path
     date  = '2011_09_26'
     drive = '0005'
 
@@ -222,60 +298,63 @@ if __name__ == '__main__':
     dataset.load_timestamps()    # Timestamps are parsed into datetime objects
     dataset.load_oxts()          # OXTS packets are loaded as named tuples
     #dataset.load_gray()         # Left/right images are accessible as named tuples
-    #dataset.load_rgb()          # Left/right images are accessible as named tuples
+    dataset.load_rgb()          # Left/right images are accessible as named tuples
     dataset.load_velo()          # Each scan is a Nx4 array of [x,y,z,reflectance]
 
-    tracklet_file = '/root/share/project/didi/data/kitti/dummy/2011_09_26/tracklet_labels.xml'
+    tracklet_file = '/media/lenovo/d/xl/2011_09_26/2011_09_26_drive_0005_sync/tracklet_labels.xml'
 
     num_frames=len(dataset.velo)  #154
     objects = read_objects(tracklet_file, num_frames)
 
+
+
+    pathsave='/home/lenovo/didi/kittidata/dummy'
     ############# convert   ###########################
-    os.makedirs('/root/share/project/didi/data/kitti/dummy/seg',exist_ok=True)
+    os.makedirs(pathsave+'/seg',exist_ok=True)
 
     if 0:  ## rgb images --------------------
-        os.makedirs('/root/share/project/didi/data/kitti/dummy/seg/rgb',exist_ok=True)
+        os.makedirs(pathsave+'/seg/rgb',exist_ok=True)
 
         for n in range(num_frames):
             print(n)
             rgb = dataset.rgb[n][0]
             rgb =(rgb*255).astype(np.uint8)
             rgb = cv2.cvtColor(rgb, cv2.COLOR_RGB2BGR)
-            cv2.imwrite('/root/share/project/didi/data/kitti/dummy/seg/rgb/rgb_%05d.png'%n,rgb)
+            cv2.imwrite(pathsave+'/seg/rgb/rgb_%05d.png'%n,rgb)
 
-        exit(0)
+        #exit(0)
 
 
     if 0:  ## top images --------------------
-        os.makedirs('/root/share/project/didi/data/kitti/dummy/seg/lidar',exist_ok=True)
-        os.makedirs('/root/share/project/didi/data/kitti/dummy/seg/top',exist_ok=True)
-        os.makedirs('/root/share/project/didi/data/kitti/dummy/seg/top_image',exist_ok=True)
+        os.makedirs(pathsave+'/seg/lidar',exist_ok=True)
+        os.makedirs(pathsave+'/seg/top',exist_ok=True)
+        os.makedirs(pathsave+'/seg/top_image',exist_ok=True)
 
         for n in range(num_frames):
             print(n)
             lidar = dataset.velo[n]
             top, top_image = lidar_to_top(lidar)
 
-            np.save('/root/share/project/didi/data/kitti/dummy/seg/lidar/lidar_%05d.npy'%n,lidar)
-            np.save('/root/share/project/didi/data/kitti/dummy/seg/top/top_%05d.npy'%n,top)
-            cv2.imwrite('/root/share/project/didi/data/kitti/dummy/seg/top_image/top_image_%05d.png'%n,top_image)
+            np.save(pathsave+'/seg/lidar/lidar_%05d.npy'%n,lidar)
+            np.save(pathsave+'/seg/top/top_%05d.npy'%n,top)
+            cv2.imwrite(pathsave+'/seg/top_image/top_image_%05d.png'%n,top_image)
 
-        exit(0)
+        #exit(0)
 
 
 
-    if 1:  ## boxes3d  --------------------
-        os.makedirs('/root/share/project/didi/data/kitti/dummy/seg/gt_boxes3d',exist_ok=True)
-        os.makedirs('/root/share/project/didi/data/kitti/dummy/seg/gt_labels',exist_ok=True)
+    if 0:  ## boxes3d  --------------------
+        os.makedirs(pathsave+'/seg/gt_boxes3d',exist_ok=True)
+        os.makedirs(pathsave+'/seg/gt_labels',exist_ok=True)
         for n in range(num_frames):
             print(n)
             objs = objects[n]
             gt_boxes3d, gt_labels = obj_to_gt_boxes3d(objs)
 
-            np.save('/root/share/project/didi/data/kitti/dummy/seg/gt_boxes3d/gt_boxes3d_%05d.npy'%n,gt_boxes3d)
-            np.save('/root/share/project/didi/data/kitti/dummy/seg/gt_labels/gt_labels_%05d.npy'%n,gt_labels)
+            np.save(pathsave+'/seg/gt_boxes3d/gt_boxes3d_%05d.npy'%n,gt_boxes3d)
+            np.save(pathsave+'/seg/gt_labels/gt_labels_%05d.npy'%n,gt_labels)
 
-        exit(0)
+        #exit(0)
 
 
     ############# analysis ###########################
@@ -284,22 +363,22 @@ if __name__ == '__main__':
         num_frames=20
         for n in range(num_frames):
             print(n)
-            top_image = cv2.imread('/root/share/project/didi/data/kitti/dummy/seg/top_image/top_image_%05d.png'%n,0)
+            top_image = cv2.imread(pathsave+'/seg/top_image/top_image_%05d.png'%n,0)
             mean_image += top_image.astype(np.float32)
 
         mean_image = mean_image/num_frames
-        cv2.imwrite('/root/share/project/didi/data/kitti/dummy/seg/top_image/top_mean_image.png',mean_image)
+        cv2.imwrite(pathsave+'/seg/top_image/top_mean_image.png',mean_image)
 
 
     if 0: ## gt_3dboxes distribution ... location and box, height
         depths =[]
         aspects=[]
         scales =[]
-        mean_image = cv2.imread('/root/share/project/didi/data/kitti/dummy/seg/top_image/top_mean_image.png',0)
+        mean_image = cv2.imread(pathsave+'/seg/top_image/top_mean_image.png',0)
 
         for n in range(num_frames):
             print(n)
-            gt_boxes3d = np.load('/root/share/project/didi/data/kitti/dummy/seg/gt_boxes3d/gt_boxes3d_%05d.npy'%n)
+            gt_boxes3d = np.load(pathsave+'/seg/gt_boxes3d/gt_boxes3d_%05d.npy'%n)
 
             top_boxes = box3d_to_top_box(gt_boxes3d)
             draw_box3d_on_top(mean_image, gt_boxes3d,color=(255,255,255), thickness=1, darken=1)
@@ -324,10 +403,10 @@ if __name__ == '__main__':
         aspects = np.array(aspects)
         scales  = np.array(scales)
 
-        numpy.savetxt('/root/share/project/didi/data/kitti/dummy/seg/depths.txt',depths)
-        numpy.savetxt('/root/share/project/didi/data/kitti/dummy/seg/aspects.txt',aspects)
-        numpy.savetxt('/root/share/project/didi/data/kitti/dummy/seg/scales.txt',scales)
-        cv2.imwrite('/root/share/project/didi/data/kitti/dummy/seg/top_image/top_rois.png',mean_image)
+        np.savetxt(pathsave+'/seg/depths.txt',depths)
+        np.savetxt(pathsave+'/seg/aspects.txt',aspects)
+        np.savetxt(pathsave+'/seg/scales.txt',scales)
+        cv2.imwrite(pathsave+'/seg/top_image/top_rois.png',mean_image)
 
 
 
@@ -338,7 +417,7 @@ if __name__ == '__main__':
 
     #----------------------------------------------------------
     #----------------------------------------------------------
-    exit(0)
+    #exit(0)
 
 
 
@@ -360,32 +439,13 @@ if __name__ == '__main__':
         top, top_image = lidar_to_top(lidar)
         rgb = dataset.rgb[0][0]
     else:
-        top = np.load('/root/share/project/didi/data/kitti/dummy/one_frame/top.npy')
-        top_image = cv2.imread('/root/share/project/didi/data/kitti/dummy/one_frame/top_image.png')
-        rgb = np.load('/root/share/project/didi/data/kitti/dummy/one_frame/rgb.npy')
+        top = np.load(pathsave+'/one_frame/top.npy')
+        top_image = cv2.imread(pathsave+'/one_frame/top_image.png')
+        rgb = np.load(pathsave+'/one_frame/rgb.npy')
 
     rgb =(rgb*255).astype(np.uint8)
     rgb = cv2.cvtColor(rgb, cv2.COLOR_RGB2BGR)
     # -----------
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -417,15 +477,15 @@ if __name__ == '__main__':
 
 
     #save
-    #np.save('/root/share/project/didi/data/kitti/dummy/one_frame/rgb.npy',rgb)
-    #np.save('/root/share/project/didi/data/kitti/dummy/one_frame/lidar.npy',lidar)
-    #np.save('/root/share/project/didi/data/kitti/dummy/one_frame/top.npy',top)
-    #cv2.imwrite('/root/share/project/didi/data/kitti/dummy/one_frame/top_image.png',top_image)
-    #cv2.imwrite('/root/share/project/didi/data/kitti/dummy/one_frame/top_image.maked.png',top_image)
+    #np.save(pathsave+'/one_frame/rgb.npy',rgb)
+    #np.save(pathsave+'/one_frame/lidar.npy',lidar)
+    #np.save(pathsave+'/one_frame/top.npy',top)
+    #cv2.imwrite(pathsave+'/one_frame/top_image.png',top_image)
+    #cv2.imwrite(pathsave+'/one_frame/top_image.maked.png',top_image)
 
-    np.save('/root/share/project/didi/data/kitti/dummy/one_frame/gt_labels.npy',gt_labels)
-    np.save('/root/share/project/didi/data/kitti/dummy/one_frame/gt_boxes.npy',gt_boxes)
-    np.save('/root/share/project/didi/data/kitti/dummy/one_frame/gt_boxes3d.npy',gt_boxes3d)
+    np.save(pathsave+'/one_frame/gt_labels.npy',gt_labels)
+    np.save(pathsave+'/one_frame/gt_boxes.npy',gt_boxes)
+    np.save(pathsave+'/one_frame/gt_boxes3d.npy',gt_boxes3d)
 
     imshow('top_image',top_image)
     cv2.waitKey(0)

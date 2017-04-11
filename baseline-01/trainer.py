@@ -20,7 +20,7 @@ from net.rcnn_target_op import draw_rcnn_targets, draw_rcnn_labels
 
 #http://3dimage.ee.tsinghua.edu.cn/cxz
 # "Multi-View 3D Object Detection Network for Autonomous Driving" - Xiaozhi Chen, CVPR 2017
-path='/home/ubuntu/didi-udacity-2017/data'
+path='/home/lenovo/didi/didi-udacity-2017.zdx/data'
 
 def load_dummy_data():
     rgb   = np.load(path+'/one_frame/rgb.npy')
@@ -40,7 +40,7 @@ def load_dummy_data():
 
     return  rgb, top, front, gt_labels, gt_boxes3d, top_image, front_image, lidar
 
-
+pathsave='/home/lenovo/didi/kittidata/dummy'
 
 def load_dummy_datas():
 
@@ -59,15 +59,15 @@ def load_dummy_datas():
     for n in range(num_frames):
         print(n)
 
-        rgb   = cv2.imread('/root/share/project/didi/data/kitti/dummy/seg/rgb/rgb_%05d.png'%n,1)
-        lidar = np.load('/root/share/project/didi/data/kitti/dummy/seg/lidar/lidar_%05d.npy'%n)
-        top   = np.load('/root/share/project/didi/data/kitti/dummy/seg/top/top_%05d.npy'%n)
+        rgb   = cv2.imread(pathsave+'/seg/rgb/rgb_%05d.png'%n,1)
+        lidar = np.load(pathsave+'/seg/lidar/lidar_%05d.npy'%n)
+        top   = np.load(pathsave+'/seg/top/top_%05d.npy'%n)
         front = np.zeros((1,1),dtype=np.float32)
-        gt_label  = np.load('/root/share/project/didi/data/kitti/dummy/seg/gt_labels/gt_labels_%05d.npy'%n)
-        gt_box3d = np.load('/root/share/project/didi/data/kitti/dummy/seg/gt_boxes3d/gt_boxes3d_%05d.npy'%n)
+        gt_label  = np.load(pathsave+'/seg/gt_labels/gt_labels_%05d.npy'%n)
+        gt_box3d = np.load(pathsave+'/seg/gt_boxes3d/gt_boxes3d_%05d.npy'%n)
 
 
-        top_image   = cv2.imread('/root/share/project/didi/data/kitti/dummy/seg/top_image/top_image_%05d.png'%n,1)
+        top_image   = cv2.imread(pathsave+'/seg/top_image/top_image_%05d.png'%n,1)
         front_image = np.zeros((1,1,3),dtype=np.float32)
 
         rgbs.append(rgb)
@@ -157,7 +157,7 @@ def run_train():
         num_bases = len(bases)
         stride = 8
 
-        rgbs, tops, fronts, gt_labels, gt_boxes3d, top_imgs, front_imgs, lidars = load_dummy_data()
+        rgbs, tops, fronts, gt_labels, gt_boxes3d, top_imgs, front_imgs, lidars = load_dummy_datas()
         num_frames = len(rgbs)
 
         top_shape   = tops[0].shape

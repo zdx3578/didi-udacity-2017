@@ -21,7 +21,7 @@ from net.rcnn_target_op import draw_rcnn_targets, draw_rcnn_labels, draw_rcnn
 
 #http://3dimage.ee.tsinghua.edu.cn/cxz
 # "Multi-View 3D Object Detection Network for Autonomous Driving" - Xiaozhi Chen, CVPR 2017
-path='/home/ubuntu/didi-udacity-2017/data'
+path='/home/lenovo/didi/didi-udacity-2017.zdx/data'
 
 def load_dummy_data():
     rgb   = np.load(path+'/one_frame/rgb.npy')
@@ -93,6 +93,16 @@ def run_train():
         rgb, top, top_image, lidar, gt_labels, gt_boxes3d,  gt_top_boxes = load_dummy_data()
         top_shape = top.shape
         top_feature_shape = (top_shape[0]//stride, top_shape[1]//stride)
+
+        cv2.imwrite('/tmp/rgb.jpg',rgb)
+        cv2.imwrite('/tmp/top_image.jpg',top_image)
+        cv2.imwrite('/tmp/lidar.jpg',lidar)
+        cv2.imwrite('/tmp/gt_boxes3d.jpg',gt_boxes3d)
+        cv2.imwrite('/tmp/gt_labels.jpg',gt_labels)
+ 
+        ## =draw_gt_boxes(
+        cv2.imshow('gt_top_boxes',gt_top_boxes)
+        cv2.waitKey(2)
 
         rgb_shape = rgb.shape
         out_shape=(8,3)
