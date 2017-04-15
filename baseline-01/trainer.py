@@ -20,7 +20,7 @@ from net.rcnn_target_op import draw_rcnn_targets, draw_rcnn_labels
 
 #http://3dimage.ee.tsinghua.edu.cn/cxz
 # "Multi-View 3D Object Detection Network for Autonomous Driving" - Xiaozhi Chen, CVPR 2017
-path='/home/lenovo/didi/didi-udacity-2017.zdx/data'
+path='/home/ubuntu/didi-udacity-2017/data'
 
 def load_dummy_data():
     rgb   = np.load(path+'/one_frame/rgb.npy')
@@ -40,7 +40,9 @@ def load_dummy_data():
 
     return  rgb, top, front, gt_labels, gt_boxes3d, top_image, front_image, lidar
 
-pathsave='/home/lenovo/didi/kittidata/dummy'
+#pathsave='/home/lenovo/didi/kittidata/dummy'
+
+pathsave='/home/ubuntu/didi-udacity-2017/kittidata/dummy'
 
 def load_dummy_datas():
 
@@ -55,7 +57,6 @@ def load_dummy_datas():
     top_images  =[]
     front_images=[]
 
-    fig = mlab.figure(figure=None, bgcolor=(0,0,0), fgcolor=None, engine=None, size=(1000, 500))
     for n in range(num_frames):
         print(n)
 

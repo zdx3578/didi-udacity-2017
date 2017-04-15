@@ -21,7 +21,9 @@ from net.rcnn_target_op import draw_rcnn_targets, draw_rcnn_labels, draw_rcnn
 
 #http://3dimage.ee.tsinghua.edu.cn/cxz
 # "Multi-View 3D Object Detection Network for Autonomous Driving" - Xiaozhi Chen, CVPR 2017
+#path='/home/ubuntu/didi-udacity-2017/data'
 path='/home/lenovo/didi/didi-udacity-2017.zdx/data'
+
 
 def load_dummy_data():
     rgb   = np.load(path+'/one_frame/rgb.npy')
